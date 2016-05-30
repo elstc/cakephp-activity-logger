@@ -187,15 +187,9 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
         {
             parent::setUp();
             $this->Logger = new LoggerBehavior(new \Cake\ORM\Table);
-            $this->Authors = TableRegistry::get('Authors', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\AuthorsTable',
-            ]);
-            $this->Articles = TableRegistry::get('Articles', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\ArticlesTable',
-            ]);
-            $this->Comments = TableRegistry::get('Comments', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\CommentsTable',
-            ]);
+            $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
+            $this->Articles = TableRegistry::get('Elastic/ActivityLogger.Articles');
+            $this->Comments = TableRegistry::get('Elastic/ActivityLogger.Comments');
             $this->ActivityLogs = TableRegistry::get('Elastic/ActivityLogger.ActivityLogs');
         }
 
@@ -290,6 +284,32 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
                 'updated'  => '2007-03-17T01:18:31+0900',
             ], $log->data, '削除対象のデータが記録されている');
             $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
+        }
+
+        public function testLogScope()
+        {
+            $this->assertSame([
+                'Elastic/ActivityLogger.Authors' => null,
+            ], $this->Authors->logScope(), 'ログのスコープが取得できる');
+            //
+            $this->assertSame([
+                'Elastic/ActivityLogger.Articles' => null,
+                'Elastic/ActivityLogger.Authors'  => null,
+            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+
+            // セットして取得
+            $author = $this->Authors->get(1);
+            $this->Authors->logScope($author);
+            $this->assertSame([
+                'Elastic/ActivityLogger.Authors' => 1,
+            ], $this->Authors->logScope(), 'ログのスコープが更新されている');
+            //
+            $article = $this->Articles->get(2);
+            $this->Articles->logScope([$article, $author]);
+            $this->assertSame([
+                'Elastic/ActivityLogger.Articles' => 2,
+                'Elastic/ActivityLogger.Authors'  => 1,
+            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
         }
     }
 

@@ -7,6 +7,7 @@ use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
+use Cake\Utility\Hash;
 use \ArrayObject;
 use Psr\Log\LogLevel;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
@@ -23,7 +24,31 @@ class LoggerBehavior extends Behavior
      *
      * @var array
      */
-    protected $_defaultConfig = [];
+    protected $_defaultConfig = [
+        'scope' => [],
+    ];
+
+    public function implementedEvents()
+    {
+        return parent::implementedEvents() + [
+            'Model.initialize' => 'afterInit',
+        ];
+    }
+
+    /**
+     * Table.initializeの後に実行
+     *
+     * @param Event $event
+     */
+    public function afterInit(Event $event)
+    {
+        $scope = $this->config('scope');
+        if (empty($scope)) {
+            $this->config('scope', [$this->_table->registryAlias()]);
+        } else {
+            $this->config('scope', $scope, false);
+        }
+    }
 
     public function afterSave(Event $event, EntityInterface $entity, ArrayObject $options)
     {
@@ -114,5 +139,55 @@ class LoggerBehavior extends Behavior
     private function getData(EntityInterface $entity)
     {
         return $entity->extract($entity->visibleProperties());
+    }
+
+    protected function _configWrite($key, $value, $merge = false)
+    {
+        if ($key === 'scope') {
+            $value = $this->__configScope($value);
+        }
+        parent::_configWrite($key, $value, $merge);
+    }
+
+    /**
+     * scope設定
+     *
+     * @param mixed $value
+     * @return array
+     */
+    private function __configScope($value)
+    {
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $new = [];
+        foreach ($value as $arg) {
+            if (is_string($arg)) {
+                $new[$arg] = null;
+            } elseif ($arg instanceof \Cake\ORM\Entity) {
+                $table = TableRegistry::get($arg->source());
+                $new[$table->registryAlias()] = $arg->get($table->primaryKey());
+            }
+        }
+
+        return $new;
+    }
+
+    /**
+     * ログスコープの設定
+     *
+     * @param mixed $args
+     * @return Table
+     */
+    public function logScope($args = null)
+    {
+        if (is_null($args)) {
+            // getter
+            return $this->config('scope');
+        }
+        // setter
+        $this->config('scope', $args);
+        return $this->_table;
     }
 }
