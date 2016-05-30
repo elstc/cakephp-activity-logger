@@ -268,6 +268,29 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             ], $log->data, '更新時のデータが記録されている');
             $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
         }
+
+        public function testDelete()
+        {
+            $author = $this->Authors->get(1);
+            $this->Authors->delete($author);
+            // アクティビティログが保存されている
+            $q = $this->ActivityLogs->find();
+            $this->assertCount(1, $q->all());
+
+            $log = $q->first();
+            /* @var $log ActivityLog */
+            $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
+            $this->assertSame(ActivityLog::ACTION_DELETE, $log->action, '削除なのでdelete');
+            $this->assertSame('Authors', $log->object_model, '対象モデルはAuthor');
+            $this->assertSame('1', $log->object_id, '対象idは1');
+            $this->assertEquals([
+                'id'       => 1,
+                'username' => 'mariano',
+                'created'  => '2007-03-17T01:16:23+0900',
+                'updated'  => '2007-03-17T01:18:31+0900',
+            ], $log->data, '削除対象のデータが記録されている');
+            $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
+        }
     }
 
 }

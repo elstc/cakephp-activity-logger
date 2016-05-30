@@ -30,6 +30,37 @@ class LoggerBehavior extends Behavior
         $table = $event->subject();
         /* @var $table Table */
 
+        $log = $this->buildLog($table, $entity, $options);
+
+        $logTable = $this->getLogTable();
+        /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
+        $logTable->save($log);
+    }
+
+    public function afterDelete(Event $event, EntityInterface $entity, ArrayObject $options)
+    {
+        $table = $event->subject();
+        /* @var $table Table */
+
+        $log = $this->buildLog($table, $entity, $options);
+        $log->action = ActivityLog::ACTION_DELETE;
+        $log->data = $this->getData($entity);
+
+        $logTable = $this->getLogTable();
+        /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
+        $logTable->save($log);
+    }
+
+    /**
+     * ログを作成
+     *
+     * @param Table $table
+     * @param EntityInterface $entity
+     * @param \ArrayObject $options
+     * @return ActivityLog
+     */
+    private function buildLog(Table $table, EntityInterface $entity, ArrayObject $options)
+    {
         $scope_model = $table->alias();
         $scope_id = $entity->{$table->primaryKey()};
         $issuer_model = null;
@@ -45,7 +76,7 @@ class LoggerBehavior extends Behavior
         $logTable = $this->getLogTable();
         /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
         $log = $logTable->newEntity(compact('scope_model', 'scope_id', 'issuer_model', 'issuer_id', 'object_model', 'object_id', 'level', 'action', 'message', 'data'));
-        $logTable->save($log);
+        return $log;
     }
 
     /**
@@ -60,7 +91,9 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * 変更値の取得
+     * エンティティ変更値の取得
+     *
+     * hiddenに設定されたものは除く
      *
      * @param EntityInterface $entity
      * @return array
@@ -68,5 +101,18 @@ class LoggerBehavior extends Behavior
     private function getDirtyData(EntityInterface $entity)
     {
         return $entity->extract($entity->visibleProperties(), true);
+    }
+
+    /**
+     * エンティティ値の取得
+     *
+     * hiddenに設定されたものは除く
+     *
+     * @param EntityInterface $entity
+     * @return array
+     */
+    private function getData(EntityInterface $entity)
+    {
+        return $entity->extract($entity->visibleProperties());
     }
 }
