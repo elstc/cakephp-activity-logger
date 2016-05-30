@@ -6,14 +6,11 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use Cake\Database\Schema\Table as Schema;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
 
 /**
  * ActivityLogs Model
- *
- * @property \Cake\ORM\Association\BelongsTo $Scopes
- * @property \Cake\ORM\Association\BelongsTo $Issuers
- * @property \Cake\ORM\Association\BelongsTo $Objects
  */
 class ActivityLogsTable extends Table
 {
@@ -31,6 +28,13 @@ class ActivityLogsTable extends Table
         $this->table('activity_logs');
         $this->displayField('id');
         $this->primaryKey('id');
+    }
+
+    protected function _initializeSchema(Schema $table)
+    {
+        $schema = parent::_initializeSchema($table);
+        $schema->columnType('data', 'json_data');
+        return $schema;
     }
 
     /**

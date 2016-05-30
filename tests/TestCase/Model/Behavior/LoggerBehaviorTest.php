@@ -13,6 +13,7 @@ namespace Elastic\ActivityLogger\Model\Entity {
     {
 
         protected $_accessible = ['*' => true, 'id' => false];
+        protected $_hidden = ['password'];
     }
 
     /**
@@ -24,6 +25,7 @@ namespace Elastic\ActivityLogger\Model\Entity {
     {
 
         protected $_accessible = ['*' => true, 'id' => false];
+        protected $_hidden = ['password'];
     }
 
     /**
@@ -71,9 +73,7 @@ namespace Elastic\ActivityLogger\Model\Table {
                 'className' => '\Elastic\ActivityLogger\Model\Table\ArticlesTable',
             ]);
 
-            $this->addBehavior('Elastic/ActivityLogger.Logger', [
-                'scope' => 'Elastic/ActivityLogger.Authors',
-            ]);
+            $this->addBehavior('Elastic/ActivityLogger.Logger');
         }
     }
 
@@ -111,7 +111,12 @@ namespace Elastic\ActivityLogger\Model\Table {
                 'className' => '\Elastic\ActivityLogger\Model\Table\CommentsTable',
             ]);
 
-            $this->addBehavior('Elastic/ActivityLogger.Logger');
+            $this->addBehavior('Elastic/ActivityLogger.Logger', [
+                'scope' => [
+                    'Elastic/ActivityLogger.Articles',
+                    'Elastic/ActivityLogger.Authors',
+                ],
+            ]);
         }
     }
 
@@ -145,6 +150,8 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
     use Cake\ORM\TableRegistry;
     use Cake\TestSuite\TestCase;
     use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
+    use Elastic\ActivityLogger\Model\Entity\ActivityLog;
+    use Psr\Log\LogLevel;
 
     /**
      * Elastic\ActivityLogger\Model\Behavior\LoggerBehavior Test Case
@@ -227,6 +234,39 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             // アクティビティログが保存されている
             $q = $this->ActivityLogs->find();
             $this->assertCount(1, $q->all());
+
+            $log = $q->first();
+            /* @var $log ActivityLog */
+            $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
+            $this->assertSame(ActivityLog::ACTION_CREATE, $log->action, '新規作成なのでcreate');
+            $this->assertSame('Authors', $log->object_model, '対象モデルはAuthor');
+            $this->assertSame('5', $log->object_id, '対象idは5');
+            $this->assertEquals([
+                'id'       => 5,
+                'username' => 'foo',
+            ], $log->data, '作成時のデータが記録されている');
+            $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
+
+            // edit
+            $author->isNew(false);
+            $author->clean();
+            $author = $this->Authors->patchEntity($author, ['username' => 'anonymous']);
+            $this->Authors->save($author);
+
+            // アクティビティログが保存されている
+            $q = $this->ActivityLogs->find()->order(['id' => 'desc']);
+            $this->assertCount(2, $q->all());
+
+            $log = $q->first();
+            /* @var $log ActivityLog */
+            $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
+            $this->assertSame(ActivityLog::ACTION_UPDATE, $log->action, '更新なのでUpdate');
+            $this->assertSame('Authors', $log->object_model, '対象モデルはAuthor');
+            $this->assertSame('5', $log->object_id, '対象idは5');
+            $this->assertEquals([
+                'username' => 'anonymous',
+            ], $log->data, '更新時のデータが記録されている');
+            $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
         }
     }
 

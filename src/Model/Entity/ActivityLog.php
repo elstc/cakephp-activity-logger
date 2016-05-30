@@ -26,6 +26,10 @@ use Cake\ORM\Entity;
 class ActivityLog extends Entity
 {
 
+    const ACTION_CREATE = 'create';
+    const ACTION_UPDATE = 'update';
+    const ACTION_DELETE = 'delete';
+
     /**
      * Fields that can be mass assigned using newEntity() or patchEntity().
      *
@@ -39,5 +43,4 @@ class ActivityLog extends Entity
         '*'  => true,
         'id' => false,
     ];
-
 }
