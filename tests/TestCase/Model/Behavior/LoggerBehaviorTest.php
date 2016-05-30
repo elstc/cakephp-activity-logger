@@ -137,7 +137,13 @@ namespace Elastic\ActivityLogger\Model\Table {
                 'className' => '\Elastic\ActivityLogger\Model\Table\UsersTable',
             ]);
 
-            $this->addBehavior('Elastic/ActivityLogger.Logger');
+            $this->addBehavior('Elastic/ActivityLogger.Logger', [
+                'scope' => [
+                    'Elastic/ActivityLogger.Authors',
+                    'Elastic/ActivityLogger.Articles',
+                    'Elastic/ActivityLogger.Users',
+                ],
+            ]);
         }
     }
 
@@ -190,6 +196,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
             $this->Articles = TableRegistry::get('Elastic/ActivityLogger.Articles');
             $this->Comments = TableRegistry::get('Elastic/ActivityLogger.Comments');
+            $this->Users = TableRegistry::get('Elastic/ActivityLogger.Users');
             $this->ActivityLogs = TableRegistry::get('Elastic/ActivityLogger.ActivityLogs');
         }
 
@@ -233,7 +240,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             /* @var $log ActivityLog */
             $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
             $this->assertSame(ActivityLog::ACTION_CREATE, $log->action, '新規作成なのでcreate');
-            $this->assertSame('Authors', $log->object_model, '対象モデルはAuthor');
+            $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
             $this->assertSame('5', $log->object_id, '対象idは5');
             $this->assertEquals([
                 'id'       => 5,
@@ -255,7 +262,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             /* @var $log ActivityLog */
             $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
             $this->assertSame(ActivityLog::ACTION_UPDATE, $log->action, '更新なのでUpdate');
-            $this->assertSame('Authors', $log->object_model, '対象モデルはAuthor');
+            $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
             $this->assertSame('5', $log->object_id, '対象idは5');
             $this->assertEquals([
                 'username' => 'anonymous',
@@ -275,7 +282,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             /* @var $log ActivityLog */
             $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
             $this->assertSame(ActivityLog::ACTION_DELETE, $log->action, '削除なのでdelete');
-            $this->assertSame('Authors', $log->object_model, '対象モデルはAuthor');
+            $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
             $this->assertSame('1', $log->object_id, '対象idは1');
             $this->assertEquals([
                 'id'       => 1,
@@ -310,6 +317,85 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
                 'Elastic/ActivityLogger.Articles' => 2,
                 'Elastic/ActivityLogger.Authors'  => 1,
             ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+        }
+
+        public function testSaveWithScope()
+        {
+            $author = $this->Authors->newEntity([
+                'username' => 'foo',
+                'password' => 'bar',
+            ]);
+            $this->Authors->save($author);
+            $log = $this->ActivityLogs->find()->order(['id' => 'desc'])->first();
+            /* @var $log ActivityLog */
+            $this->assertSame('Elastic/ActivityLogger.Authors', $log->scope_model, 'スコープが指定されている');
+            $this->assertEquals($author->id, $log->scope_id, 'スコープが指定されている');
+
+            //
+            $article = $this->Articles->get(2);
+            $user = $this->Users->get(1);
+            $comment = $this->Comments->newEntity([
+                'article_id' => $article->id,
+                'user_id'    => $user->id,
+                'comment'    => 'Awesome!',
+            ]);
+            $this->Comments->logScope([$article, $user]);
+            $this->Comments->save($comment);
+
+            $logs = $this->ActivityLogs->find()
+            ->where(['object_model' => 'Elastic/ActivityLogger.Comments'])
+            ->order(['id' => 'desc'])
+            ->all()
+            ->toArray();
+
+            $this->assertCount(2, $logs);
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'スコープが指定されている');
+            $this->assertEquals($user->id, $logs[0]->scope_id, 'スコープが指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'スコープが指定されている');
+            $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
+        }
+
+        public function testSaveWithIssuer()
+        {
+            $user = $this->Users->get(1);
+            $this->Authors->logIssuer($user);
+            $author = $this->Authors->newEntity([
+                'username' => 'foo',
+                'password' => 'bar',
+            ]);
+            $this->Authors->save($author);
+            $log = $this->ActivityLogs->find()->order(['id' => 'desc'])->first();
+            /* @var $log ActivityLog */
+            $this->assertSame('Elastic/ActivityLogger.Users', $log->issuer_model, '発行者が指定されている');
+            $this->assertEquals($user->id, $log->issuer_id, '発行者が指定されている');
+
+            //
+            $article = $this->Articles->get(2);
+            $user = $this->Users->get(1);
+            $comment = $this->Comments->newEntity([
+                'article_id' => $article->id,
+                'user_id'    => $user->id,
+                'comment'    => 'Awesome!',
+            ]);
+            $this->Comments->logIssuer($user);
+            $this->Comments->logScope($article);
+            $this->Comments->save($comment);
+
+            $logs = $this->ActivityLogs->find()
+            ->where(['object_model' => 'Elastic/ActivityLogger.Comments'])
+            ->order(['id' => 'desc'])
+            ->all()
+            ->toArray();
+
+            $this->assertCount(2, $logs);
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, '発行者からスコープが指定されている');
+            $this->assertEquals($user->id, $logs[0]->scope_id, '発行者からスコープが指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->issuer_model, '発行者が指定されている');
+            $this->assertEquals($user->id, $logs[0]->issuer_id, '発行者が指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'スコープが指定されている');
+            $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[1]->issuer_model, '発行者が指定されている');
+            $this->assertEquals($user->id, $logs[1]->issuer_id, '発行者が指定されている');
         }
     }
 

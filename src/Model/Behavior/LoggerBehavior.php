@@ -56,10 +56,9 @@ class LoggerBehavior extends Behavior
         /* @var $table Table */
 
         $log = $this->buildLog($table, $entity, $options);
+        $logs = $this->duplicateLogByScope($log, $table, $entity, $this->config('scope'));
 
-        $logTable = $this->getLogTable();
-        /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
-        $logTable->save($log);
+        $this->saveLogs($logs);
     }
 
     public function afterDelete(Event $event, EntityInterface $entity, ArrayObject $options)
@@ -71,9 +70,9 @@ class LoggerBehavior extends Behavior
         $log->action = ActivityLog::ACTION_DELETE;
         $log->data = $this->getData($entity);
 
-        $logTable = $this->getLogTable();
-        /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
-        $logTable->save($log);
+        $logs = $this->duplicateLogByScope($log, $table, $entity, $this->config('scope'));
+
+        $this->saveLogs($logs);
     }
 
     /**
@@ -86,11 +85,8 @@ class LoggerBehavior extends Behavior
      */
     private function buildLog(Table $table, EntityInterface $entity, ArrayObject $options)
     {
-        $scope_model = $table->alias();
-        $scope_id = $entity->{$table->primaryKey()};
-        $issuer_model = null;
-        $issuer_id = null;
-        $object_model = $table->alias();
+        list($issuer_model, $issuer_id) = $this->buildIssuer();
+        $object_model = $table->registryAlias();
         $object_id = $entity->{$table->primaryKey()};
 
         $level = LogLevel::INFO;
@@ -100,8 +96,69 @@ class LoggerBehavior extends Behavior
 
         $logTable = $this->getLogTable();
         /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
-        $log = $logTable->newEntity(compact('scope_model', 'scope_id', 'issuer_model', 'issuer_id', 'object_model', 'object_id', 'level', 'action', 'message', 'data'));
+        $log = $logTable->newEntity(compact('issuer_model', 'issuer_id', 'object_model', 'object_id', 'level', 'action', 'message', 'data'));
         return $log;
+    }
+
+    /**
+     * ログ発行者（操作者）の取得
+     *
+     * @return array
+     */
+    private function buildIssuer()
+    {
+        $issuerModel = null;
+        $issuerId = null;
+        $issuer = $this->config('issuer');
+        if ($issuer && $issuer instanceof \Cake\ORM\Entity) {
+            $issuerTable = TableRegistry::get($issuer->source());
+            $issuerModel = $issuerTable->registryAlias();
+            $issuerId = $issuer->get($issuerTable->primaryKey());
+        }
+        return [$issuerModel, $issuerId];
+    }
+
+    /**
+     * ログデータをスコープに応じて複製
+     *
+     * @param ActivityLog $log
+     * @param Table $table
+     * @param EntityInterface $entity
+     * @param array $scope
+     */
+    private function duplicateLogByScope(ActivityLog $log, Table $table, EntityInterface $entity, array $scope)
+    {
+        $logs = [];
+        foreach ($scope as $scopeModel => $scopeId) {
+            if ($scopeModel === $table->registryAlias()) {
+                // モデル自身に対する更新の場合は、entityのidをセットする
+                $scopeId = $entity->get($table->primaryKey());
+            }
+            if (empty($scopeId)) {
+                continue;
+            }
+            $logs[] = $table->patchEntity(clone $log, [
+                'scope_model' => $scopeModel,
+                'scope_id'    => $scopeId,
+            ]);
+        }
+        return $logs;
+    }
+
+    /**
+     *
+     * @param ActivityLog[] $logs
+     */
+    private function saveLogs($logs)
+    {
+        $logTable = $this->getLogTable();
+        /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
+        $logTable->connection()->useSavePoints(true);
+        return $logTable->connection()->transactional(function () use ($logTable, $logs) {
+            foreach ($logs as $log) {
+                $logTable->save($log, ['atomic' => false]);
+            }
+        });
     }
 
     /**
@@ -188,6 +245,29 @@ class LoggerBehavior extends Behavior
         }
         // setter
         $this->config('scope', $args);
+        return $this->_table;
+    }
+
+    /**
+     * ログ発行者の設定
+     *
+     * @param \Cake\ORM\Entity $issuer
+     * @return Table
+     */
+    public function logIssuer(\Cake\ORM\Entity $issuer = null)
+    {
+        if (is_null($issuer)) {
+            // getter
+            return $this->config('issuer');
+        }
+        // setter
+        $this->config('issuer', $issuer);
+
+        // scopeに含む場合、併せてscopeにセット
+        list($issuerModel, $issuerId) = $this->buildIssuer();
+        if (in_array($issuerModel, array_keys($this->config('scope')))) {
+            $this->logScope($issuer);
+        }
         return $this->_table;
     }
 }
