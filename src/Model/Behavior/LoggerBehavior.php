@@ -1,4 +1,5 @@
 <?php
+
 namespace Elastic\ActivityLogger\Model\Behavior;
 
 use Cake\ORM\Behavior;

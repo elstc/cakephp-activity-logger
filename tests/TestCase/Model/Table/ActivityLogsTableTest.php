@@ -25,10 +25,7 @@ class ActivityLogsTableTest extends TestCase
      * @var array
      */
     public $fixtures = [
-        'plugin.elastic/activity_logger.activity_logs',
-        'plugin.elastic/activity_logger.scopes',
-        'plugin.elastic/activity_logger.issuers',
-        'plugin.elastic/activity_logger.objects'
+        'plugin.Elastic/ActivityLogger.ActivityLogs',
     ];
 
     /**
