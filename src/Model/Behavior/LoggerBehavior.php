@@ -15,6 +15,27 @@ use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
 
 /**
  * Logger behavior
+ *
+ * example:
+ *
+ * in Table (eg. CommentsTable)
+ * <pre><code>
+ * public function initialize(array $config)
+ * {
+ *      $this->addBehavior('Elastic/ActivityLogger.Logger', [
+ *          'scope' => [
+ *              'Elastic/ActivityLogger.Authors',
+ *              'Elastic/ActivityLogger.Articles',
+ *              'Elastic/ActivityLogger.Users',
+ *          ],
+ *      ]);
+ * }
+ * </code></pre>
+ *
+ * set Scope/Issuer
+ * <pre><code>
+ * $commentsTable->logScope([$artice, $author])->logIssuer($user);
+ * </code></pre>
  */
 class LoggerBehavior extends Behavior
 {
@@ -44,10 +65,10 @@ class LoggerBehavior extends Behavior
     {
         $scope = $this->config('scope');
         if (empty($scope)) {
-            $this->config('scope', [$this->_table->registryAlias()]);
-        } else {
-            $this->config('scope', $scope, false);
+            $scope = [$this->_table->registryAlias()];
         }
+        $this->config('scope', $scope, false);
+        $this->config('originalScope', $scope);
     }
 
     public function afterSave(Event $event, EntityInterface $entity, ArrayObject $options)
@@ -234,7 +255,7 @@ class LoggerBehavior extends Behavior
     /**
      * ログスコープの設定
      *
-     * @param mixed $args
+     * @param mixed $args if $args === false リセット
      * @return Table
      */
     public function logScope($args = null)
@@ -243,8 +264,14 @@ class LoggerBehavior extends Behavior
             // getter
             return $this->config('scope');
         }
-        // setter
-        $this->config('scope', $args);
+
+        if ($args === false) {
+            // reset
+            $this->config('scope', $this->config('originalScope'), false);
+        } else {
+            // setter
+            $this->config('scope', $args);
+        }
         return $this->_table;
     }
 

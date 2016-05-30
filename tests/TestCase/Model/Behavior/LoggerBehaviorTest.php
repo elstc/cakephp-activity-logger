@@ -317,6 +317,20 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
                 'Elastic/ActivityLogger.Articles' => 2,
                 'Elastic/ActivityLogger.Authors'  => 1,
             ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+
+            // スコープの追加
+            $this->Articles->logScope($this->Comments->get(3));
+            $this->assertSame([
+                'Elastic/ActivityLogger.Articles' => 2,
+                'Elastic/ActivityLogger.Authors'  => 1,
+                'Elastic/ActivityLogger.Comments'  => 3,
+            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+            // スコープのリセット
+            $this->Articles->logScope(false);
+            $this->assertSame([
+                'Elastic/ActivityLogger.Articles' => null,
+                'Elastic/ActivityLogger.Authors'  => null,
+            ], $this->Articles->logScope(), 'ログのスコープがリセットされている');
         }
 
         public function testSaveWithScope()
