@@ -17,20 +17,29 @@ fisrt, add repositories section to `composer.json`
 ]
 ```
 
-and then run `composer require`
+### run `composer require`
 
 ```
 composer require elastic/cakephp-activity-logger
 ```
 
-and, load Plugin bootstrap
+### Load plugin bootstrap
 
-in bootstrap.php
+in `config/bootstrap.php`
 
 ```(php)
 use Cake\Core\Plugin;
 Plugin::load('Elastic/ActivityLogger', ['bootstrap' => true]);
 ```
+
+### Create activity_logs table
+
+run migration command:
+
+```
+bin/cake migrations migrate -p Elastic/ActivityLogger
+```
+
 
 ## Usage
 
