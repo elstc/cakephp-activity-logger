@@ -46,6 +46,7 @@ class LoggerBehavior extends Behavior
      * @var array
      */
     protected $_defaultConfig = [
+        'logTable' => 'Elastic/ActivityLogger.ActivityLogs',
         'scope' => [],
     ];
 
@@ -189,7 +190,7 @@ class LoggerBehavior extends Behavior
     private function getLogTable()
     {
         return TableRegistry::get('ActivityLog', [
-            'className' => 'Elastic/ActivityLogger.ActivityLogs',
+            'className' => $this->config('logTable'),
         ]);
     }
 
