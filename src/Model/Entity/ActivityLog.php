@@ -29,6 +29,7 @@ class ActivityLog extends Entity
     const ACTION_CREATE = 'create';
     const ACTION_UPDATE = 'update';
     const ACTION_DELETE = 'delete';
+    const ACTION_RUNTIME = 'runtime';
 
     /**
      * Fields that can be mass assigned using newEntity() or patchEntity().

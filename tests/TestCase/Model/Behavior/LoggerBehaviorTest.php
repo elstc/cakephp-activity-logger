@@ -166,6 +166,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
      * @property \Elastic\ActivityLogger\Model\Table\AuthorsTable $Authors
      * @property \Elastic\ActivityLogger\Model\Table\ArticlesTable $Articles
      * @property \Elastic\ActivityLogger\Model\Table\CommentsTable $Comments
+     * @property \Elastic\ActivityLogger\Model\Table\UsersTable $Users
      * @property \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior $Logger
      */
     class LoggerBehaviorTest extends TestCase
@@ -323,7 +324,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->assertSame([
                 'Elastic/ActivityLogger.Articles' => 2,
                 'Elastic/ActivityLogger.Authors'  => 1,
-                'Elastic/ActivityLogger.Comments'  => 3,
+                'Elastic/ActivityLogger.Comments' => 3,
             ], $this->Articles->logScope(), 'ログのスコープが取得できる');
             // スコープのリセット
             $this->Articles->logScope(false);
@@ -410,6 +411,58 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
             $this->assertSame('Elastic/ActivityLogger.Users', $logs[1]->issuer_model, '発行者が指定されている');
             $this->assertEquals($user->id, $logs[1]->issuer_id, '発行者が指定されている');
+        }
+
+        public function testActivityLog()
+        {
+            $level = LogLevel::WARNING;
+            $message = 'custom message';
+            $user = $this->Users->get(4);
+            $article = $this->Articles->get(1);
+            $author = $this->Authors->get(1);
+            $context = [
+                'issuer' => $user,
+                'scope'  => [$article, $author],
+                'object' => $this->Comments->get(2),
+                'action' => 'publish',
+            ];
+            $this->Comments->activityLog($level, $message, $context);
+
+            $logs = $this->ActivityLogs->find()
+            ->order(['id' => 'desc'])
+            ->all()
+            ->toArray();
+
+            $this->assertCount(3, $logs);
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, '発行者からスコープが指定されている');
+            $this->assertEquals($user->id, $logs[0]->scope_id, '発行者からスコープが指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->issuer_model, '発行者が指定されている');
+            $this->assertEquals($user->id, $logs[0]->issuer_id, '発行者が指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Comments', $logs[0]->object_model);
+            $this->assertEquals('2', $logs[0]->object_id);
+            $this->assertSame($message, $logs[0]->message);
+            $this->assertSame($level, $logs[0]->level);
+            $this->assertSame('publish', $logs[0]->action);
+
+            $this->assertSame('Elastic/ActivityLogger.Authors', $logs[1]->scope_model, 'スコープが指定されている');
+            $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[1]->issuer_model, '発行者が指定されている');
+            $this->assertEquals($user->id, $logs[1]->issuer_id, '発行者が指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Comments', $logs[1]->object_model);
+            $this->assertEquals('2', $logs[1]->object_id);
+            $this->assertSame($message, $logs[1]->message);
+            $this->assertSame($level, $logs[1]->level);
+            $this->assertSame('publish', $logs[1]->action);
+
+            $this->assertSame('Elastic/ActivityLogger.Articles', $logs[2]->scope_model, 'スコープが指定されている');
+            $this->assertEquals($article->id, $logs[2]->scope_id, 'スコープが指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[2]->issuer_model, '発行者が指定されている');
+            $this->assertEquals($user->id, $logs[2]->issuer_id, '発行者が指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Comments', $logs[2]->object_model);
+            $this->assertEquals('2', $logs[2]->object_id);
+            $this->assertSame($message, $logs[2]->message);
+            $this->assertSame($level, $logs[2]->level);
+            $this->assertSame('publish', $logs[2]->action);
         }
     }
 
