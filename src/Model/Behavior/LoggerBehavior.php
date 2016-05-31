@@ -171,6 +171,13 @@ class LoggerBehavior extends Behavior
      * @param string $level
      * @param string $message
      * @param array $context
+     * [
+     *   'object' => Entity,
+     *   'issuer' => Entity,
+     *   'scope' => Entity[],
+     *   'action' => string,
+     *   'data' => array,
+     * ]
      */
     public function log($level, $message, array $context = [])
     {
