@@ -142,7 +142,7 @@ class LoggerBehavior extends Behavior
         $this->config('issuer', $issuer);
 
         // scopeに含む場合、併せてscopeにセット
-        list($issuerModel, $issuerId) = $this->buildIssuerParameter($this->config('issuer'));
+        list($issuerModel, $issuerId) = $this->buildObjectParameter($this->config('issuer'));
         if (in_array($issuerModel, array_keys($this->config('scope')))) {
             $this->logScope($issuer);
         }
@@ -198,6 +198,33 @@ class LoggerBehavior extends Behavior
     }
 
     /**
+     * アクティビティログの取得
+     *
+     * $table->find('activity', ['scope' => $entity])
+     *
+     * @param \Cake\ORM\Query $query
+     * @param array $options
+     * @return \Cake\ORM\Query
+     */
+    public function findActivity(\Cake\ORM\Query $query, array $options)
+    {
+        $logTable = $this->getLogTable();
+        $query = $logTable->find();
+
+        $where = [$logTable->aliasField('scope_model') => $this->_table->registryAlias()];
+
+        if (isset($options['scope']) && $options['scope'] instanceof \Cake\ORM\Entity) {
+            list($scopeModel, $scopeId) = $this->buildObjectParameter($options['scope']);
+            $where[$logTable->aliasField('scope_model')] = $scopeModel;
+            $where[$logTable->aliasField('scope_id')] = $scopeId;
+        }
+
+        $query->where($where)->order([$logTable->aliasField('id') => 'desc']);
+
+        return $query;
+    }
+
+    /**
      * ログを作成
      *
      * @param EntityInterface $entity
@@ -206,7 +233,7 @@ class LoggerBehavior extends Behavior
      */
     private function buildLog(EntityInterface $entity = null, EntityInterface $issuer = null)
     {
-        list($issuer_model, $issuer_id) = $this->buildIssuerParameter($issuer);
+        list($issuer_model, $issuer_id) = $this->buildObjectParameter($issuer);
         list($object_model, $object_id) = $this->buildObjectParameter($entity);
 
         $level = LogLevel::INFO;
@@ -219,28 +246,10 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログ発行者（操作者）の取得
-     *
-     * @param \Cake\ORM\Entity $issuer
-     * @return array
-     */
-    private function buildIssuerParameter($issuer)
-    {
-        $issuerModel = null;
-        $issuerId = null;
-        if ($issuer && $issuer instanceof \Cake\ORM\Entity) {
-            $issuerTable = TableRegistry::get($issuer->source());
-            $issuerModel = $issuerTable->registryAlias();
-            $issuerId = $issuer->get($issuerTable->primaryKey());
-        }
-        return [$issuerModel, $issuerId];
-    }
-
-    /**
-     * ログ発行者（操作者）の取得
+     * エンティティからパラメータの取得
      *
      * @param \Cake\ORM\Entity $object
-     * @return array
+     * @return array [object_model, object_id]
      */
     private function buildObjectParameter($object)
     {

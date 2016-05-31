@@ -469,8 +469,8 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
                 }
 
                 $message = '';
-                $object = $context['object'] ?: null;
-                $issuer = $context['issuer'] ?: null;
+                $object = $context['object'] ? : null;
+                $issuer = $context['issuer'] ? : null;
                 switch ($log->action) {
                     case ActivityLog::ACTION_CREATE:
                         $message = sprintf('%3$s が記事 #%1$s「%2$s」を作成しました。', $object->id, $object->title, $issuer->username);
@@ -517,6 +517,49 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->assertSame('mariano が記事 #4「バージョン1.0 stableリリース」を更新しました。', $logs[1]->message);
             $this->assertSame('記事を更新しています。', $logs[2]->message);
             $this->assertSame('nate が記事 #4「バージョン1.0 stableリリース」を削除しました。', $logs[3]->message);
+        }
+
+        public function testFindActivity()
+        {
+            $author = $this->Authors->get(1);
+            $article = $this->Articles->newEntity([
+                'title'  => 'new article',
+                'body'   => 'new content.',
+                'author' => $author,
+            ]);
+            $this->Articles->logIssuer($author)->save($article);
+            $user = $this->Users->get(2);
+            $comment = $this->Comments->newEntity([
+                'user_id'    => $user->id,
+                'article_id' => $article->id,
+                'comment'    => 'new comment',
+            ]);
+            $this->Comments->logIssuer($user)->logScope([$article])->save($comment);
+
+            //
+            $authorLogs = $this->Authors->find('activity', ['scope' => $author])
+            ->all()
+            ->toArray();
+            $this->assertCount(1, $authorLogs);
+            $this->assertSame('Elastic/ActivityLogger.Articles', $authorLogs[0]->object_model);
+            //
+            $articleLogs = $this->Articles->find('activity', ['scope' => $article])
+            ->all()
+            ->toArray();
+            $this->assertCount(2, $articleLogs);
+            $this->assertSame('Elastic/ActivityLogger.Comments', $articleLogs[0]->object_model, '最新のものが上に表示される');
+            $this->assertSame('Elastic/ActivityLogger.Articles', $articleLogs[1]->object_model);
+            //
+            $commentLogs = $this->Comments->find('activity', ['scope' => $comment])
+            ->all()
+            ->toArray();
+            $this->assertCount(0, $commentLogs);
+            //
+            $userLogs = $this->Users->find('activity', ['scope' => $user])
+            ->all()
+            ->toArray();
+            $this->assertCount(1, $userLogs);
+            $this->assertSame('Elastic/ActivityLogger.Comments', $userLogs[0]->object_model);
         }
     }
 
