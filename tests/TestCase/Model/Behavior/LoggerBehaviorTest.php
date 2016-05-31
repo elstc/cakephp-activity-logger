@@ -66,6 +66,8 @@ namespace Elastic\ActivityLogger\Model\Table {
     class AuthorsTable extends Table
     {
 
+        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
+
         public function initialize(array $config)
         {
             $this->entityClass('\Elastic\ActivityLogger\Model\Entity\Author');
@@ -82,6 +84,8 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class UsersTable extends Table
     {
+
+        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
 
         public function initialize(array $config)
         {
@@ -100,6 +104,8 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class ArticlesTable extends Table
     {
+
+        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
 
         public function initialize(array $config)
         {
@@ -126,6 +132,8 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class CommentsTable extends Table
     {
+
+        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
 
         public function initialize(array $config)
         {
@@ -172,11 +180,6 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
     class LoggerBehaviorTest extends TestCase
     {
 
-        /**
-         * Fixtures
-         *
-         * @var array
-         */
         public $fixtures = [
             'plugin.Elastic/ActivityLogger.ActivityLogs',
             'plugin.Elastic/ActivityLogger.Authors',
@@ -184,12 +187,8 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             'plugin.Elastic/ActivityLogger.Comments',
             'plugin.Elastic/ActivityLogger.Users',
         ];
+        public $dropTables = true;
 
-        /**
-         * setUp method
-         *
-         * @return void
-         */
         public function setUp()
         {
             parent::setUp();
@@ -201,11 +200,6 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->ActivityLogs = TableRegistry::get('Elastic/ActivityLogger.ActivityLogs');
         }
 
-        /**
-         * tearDown method
-         *
-         * @return void
-         */
         public function tearDown()
         {
             unset($this->Logger);
