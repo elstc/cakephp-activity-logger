@@ -37,6 +37,17 @@ trait LoggerBehaviorCompletion
     }
 
     /**
+     * メッセージ生成メソッドの設定
+     *
+     * @param \Elastic\ActivityLogger\Model\Behavior\callable $handler
+     * @return callable
+     */
+    public function logMessageBuilder(callable $handler = null)
+    {
+        return $this->__call('logMessageBuilder', func_get_args());
+    }
+
+    /**
      * カスタムログの記述
      *
      * @param string $level

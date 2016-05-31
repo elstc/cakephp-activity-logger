@@ -84,6 +84,7 @@ class LoggerBehavior extends Behavior
         $log = $this->buildLog($entity, $this->config('issuer'));
         $log->action = $entity->isNew() ? ActivityLog::ACTION_CREATE : ActivityLog::ACTION_UPDATE;
         $log->data = $this->getDirtyData($entity);
+        $log->message = $this->buildMessage($log, $entity, $this->config('issuer'));
 
         $logs = $this->duplicateLogByScope($this->config('scope'), $log, $entity);
 
@@ -95,6 +96,7 @@ class LoggerBehavior extends Behavior
         $log = $this->buildLog($entity, $this->config('issuer'));
         $log->action = ActivityLog::ACTION_DELETE;
         $log->data = $this->getData($entity);
+        $log->message = $this->buildMessage($log, $entity, $this->config('issuer'));
 
         $logs = $this->duplicateLogByScope($this->config('scope'), $log, $entity);
 
@@ -148,6 +150,22 @@ class LoggerBehavior extends Behavior
     }
 
     /**
+     * メッセージ生成メソッドの設定
+     *
+     * @param \Elastic\ActivityLogger\Model\Behavior\callable $handler
+     * @return callable
+     */
+    public function logMessageBuilder(callable $handler = null)
+    {
+        if (is_null($handler)) {
+            // getter
+            return $this->config('messageBuilder');
+        }
+        // setter
+        $this->config('messageBuilder', $handler);
+    }
+
+    /**
      * カスタムログの記述
      *
      * @param string $level
@@ -166,6 +184,7 @@ class LoggerBehavior extends Behavior
 
         $log->level = $level;
         $log->message = $message;
+        $log->message = $this->buildMessage($log, $entity, $issuer);
 
         // issuerをscopeに含む場合、併せてscopeにセット
         if (!empty($log->issuer_id) && in_array($log->issuer_model, array_keys($this->config('scope')))) {
@@ -185,7 +204,7 @@ class LoggerBehavior extends Behavior
      * @param EntityInterface $issuer
      * @return ActivityLog
      */
-    private function buildLog(EntityInterface $entity, EntityInterface $issuer = null)
+    private function buildLog(EntityInterface $entity = null, EntityInterface $issuer = null)
     {
         list($issuer_model, $issuer_id) = $this->buildIssuerParameter($issuer);
         list($object_model, $object_id) = $this->buildObjectParameter($entity);
@@ -233,6 +252,23 @@ class LoggerBehavior extends Behavior
             $objectId = $object->get($objectTable->primaryKey());
         }
         return [$objectModel, $objectId];
+    }
+
+    /**
+     * メッセージの生成
+     *
+     * @param ActivityLog $log
+     * @param EntityInterface $entity
+     * @param EntityInterface $issuer
+     * @return string
+     */
+    private function buildMessage($log, $entity = null, $issuer = null)
+    {
+        if (!is_callable($this->config('messageBuilder'))) {
+            return $log->message;
+        }
+        $context = ['object' => $entity, 'issuer' => $issuer];
+        return call_user_func($this->config('messageBuilder'), $log, $context);
     }
 
     /**
@@ -298,7 +334,7 @@ class LoggerBehavior extends Behavior
      * @param EntityInterface $entity
      * @return array
      */
-    private function getDirtyData(EntityInterface $entity)
+    private function getDirtyData(EntityInterface $entity = null)
     {
         if (empty($entity)) {
             return null;
@@ -314,7 +350,7 @@ class LoggerBehavior extends Behavior
      * @param EntityInterface $entity
      * @return array
      */
-    private function getData(EntityInterface $entity)
+    private function getData(EntityInterface $entity = null)
     {
         if (empty($entity)) {
             return null;
