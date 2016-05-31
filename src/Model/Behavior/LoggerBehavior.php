@@ -102,6 +102,83 @@ class LoggerBehavior extends Behavior
     }
 
     /**
+     * ログスコープの設定
+     *
+     * @param mixed $args if $args === false リセット
+     * @return Table
+     */
+    public function logScope($args = null)
+    {
+        if (is_null($args)) {
+            // getter
+            return $this->config('scope');
+        }
+
+        if ($args === false) {
+            // reset
+            $this->config('scope', $this->config('originalScope'), false);
+        } else {
+            // setter
+            $this->config('scope', $args);
+        }
+        return $this->_table;
+    }
+
+    /**
+     * ログ発行者の設定
+     *
+     * @param \Cake\ORM\Entity $issuer
+     * @return Table
+     */
+    public function logIssuer(\Cake\ORM\Entity $issuer = null)
+    {
+        if (is_null($issuer)) {
+            // getter
+            return $this->config('issuer');
+        }
+        // setter
+        $this->config('issuer', $issuer);
+
+        // scopeに含む場合、併せてscopeにセット
+        list($issuerModel, $issuerId) = $this->buildIssuerParameter($this->config('issuer'));
+        if (in_array($issuerModel, array_keys($this->config('scope')))) {
+            $this->logScope($issuer);
+        }
+        return $this->_table;
+    }
+
+    /**
+     * カスタムログの記述
+     *
+     * @param string $level
+     * @param string $message
+     * @param array $context
+     */
+    public function log($level, $message, array $context = [])
+    {
+        $entity = !empty($context['object']) ? $context['object'] : null;
+        $issuer = !empty($context['issuer']) ? $context['issuer'] : $this->config('issuer');
+        $scope = !empty($context['scope']) ? $this->__configScope($context['scope']) : $this->config('scope');
+
+        $log = $this->buildLog($entity, $issuer);
+        $log->action = isset($context['action']) ? $context['action'] : ActivityLog::ACTION_RUNTIME;
+        $log->data = isset($context['data']) ? $context['data'] : $this->getData($entity);
+
+        $log->level = $level;
+        $log->message = $message;
+
+        // issuerをscopeに含む場合、併せてscopeにセット
+        if (!empty($log->issuer_id) && in_array($log->issuer_model, array_keys($this->config('scope')))) {
+            $scope[$log->issuer_model] = $log->issuer_id;
+        }
+
+        $logs = $this->duplicateLogByScope($scope, $log, $entity);
+
+        $this->saveLogs($logs);
+        return $logs;
+    }
+
+    /**
      * ログを作成
      *
      * @param EntityInterface $entity
@@ -276,81 +353,5 @@ class LoggerBehavior extends Behavior
         }
 
         return $new;
-    }
-
-    /**
-     * ログスコープの設定
-     *
-     * @param mixed $args if $args === false リセット
-     * @return Table
-     */
-    public function logScope($args = null)
-    {
-        if (is_null($args)) {
-            // getter
-            return $this->config('scope');
-        }
-
-        if ($args === false) {
-            // reset
-            $this->config('scope', $this->config('originalScope'), false);
-        } else {
-            // setter
-            $this->config('scope', $args);
-        }
-        return $this->_table;
-    }
-
-    /**
-     * ログ発行者の設定
-     *
-     * @param \Cake\ORM\Entity $issuer
-     * @return Table
-     */
-    public function logIssuer(\Cake\ORM\Entity $issuer = null)
-    {
-        if (is_null($issuer)) {
-            // getter
-            return $this->config('issuer');
-        }
-        // setter
-        $this->config('issuer', $issuer);
-
-        // scopeに含む場合、併せてscopeにセット
-        list($issuerModel, $issuerId) = $this->buildIssuerParameter($this->config('issuer'));
-        if (in_array($issuerModel, array_keys($this->config('scope')))) {
-            $this->logScope($issuer);
-        }
-        return $this->_table;
-    }
-
-    /**
-     * カスタムログの記述
-     *
-     * @param string $level
-     * @param string $message
-     * @param array $context
-     */
-    public function log($level, $message, array $context = [])
-    {
-        $entity = !empty($context['object']) ? $context['object'] : null;
-        $issuer = !empty($context['issuer']) ? $context['issuer'] : $this->config('issuer');
-        $scope = !empty($context['scope']) ? $this->__configScope($context['scope']) : $this->config('scope');
-
-        $log = $this->buildLog($entity, $issuer);
-        $log->action = isset($context['action']) ? $context['action'] : ActivityLog::ACTION_RUNTIME;
-        $log->data = isset($context['data']) ? $context['data'] : $this->getData($entity);
-
-        $log->level = $level;
-        $log->message = $message;
-
-        // issuerをscopeに含む場合、併せてscopeにセット
-        if (!empty($log->issuer_id) && in_array($log->issuer_model, array_keys($this->config('scope')))) {
-            $scope[$log->issuer_model] = $log->issuer_id;
-        }
-
-        $logs = $this->duplicateLogByScope($scope, $log, $entity);
-
-        $this->saveLogs($logs);
     }
 }
