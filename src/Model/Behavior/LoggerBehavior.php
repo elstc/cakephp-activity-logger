@@ -323,12 +323,9 @@ class LoggerBehavior extends Behavior
     {
         $logTable = $this->getLogTable();
         /* @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
-        $logTable->connection()->useSavePoints(true);
-        return $logTable->connection()->transactional(function () use ($logTable, $logs) {
-            foreach ($logs as $log) {
-                $logTable->save($log, ['atomic' => false]);
-            }
-        });
+        foreach ($logs as $log) {
+            $logTable->save($log, ['atomic' => false]);
+        }
     }
 
     /**
