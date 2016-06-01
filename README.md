@@ -6,18 +6,13 @@ You can install this plugin into your CakePHP application using [composer](http:
 
 The recommended way to install composer packages is:
 
-fisrt, add repositories section to `composer.json`
+fisrt, add repositories to composer
 
 ```
-"repositories": [
-    {
-        "type": "git",
-        "url": "ssh://git@git.elasticconsultants.info:20022/elastic/cakephp-activity-logger.git"
-    }
-]
+composer config repositories.cakephp-activity-logger vcs ssh://git@git.elasticconsultants.info:20022/elastic/cakephp-activity-logger.git
 ```
 
-### run `composer require`
+run `composer require`
 
 ```
 composer require elastic/cakephp-activity-logger
