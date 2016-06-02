@@ -338,12 +338,18 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
 
             // スコープの追加
             $this->Articles->logScope($this->Comments->get(3));
+            $this->Articles->logScope('Custom');
+            $this->Articles->logScope(['Another' => 4, 'Foo' => '005', 'Hoge']);
             $this->assertSame([
                 'Elastic/ActivityLogger.Articles' => 2,
                 'Elastic/ActivityLogger.Authors'  => 1,
                 '\MyApp'                          => true,
                 'Elastic/ActivityLogger.Comments' => 3,
-                ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+                'Custom' => true,
+                'Another' => 4,
+                'Foo' => '005',
+                'Hoge' => true,
+                ], $this->Articles->logScope(), 'ログのスコープがセットされている');
             // スコープのリセット
             $this->Articles->logScope(false);
             $this->assertSame([

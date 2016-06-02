@@ -130,7 +130,19 @@ class LoggerBehavior extends Behavior
             $this->config('scope', $this->config('originalScope'), false);
         } else {
             // setter
-            $this->config('scope', $args);
+            if (!is_array($args)) {
+                $args = [$args];
+            }
+            $scope = [];
+            foreach ($args as $key => $val) {
+                if (is_int($key) && is_string($val)) {
+                    // [0 => 'Scope']
+                    $scope[$val] = true;
+                } else {
+                    $scope[$key] = $val;
+                }
+            }
+            $this->config('scope', $scope);
         }
         return $this->_table;
     }
