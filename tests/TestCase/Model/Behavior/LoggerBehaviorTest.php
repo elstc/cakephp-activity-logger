@@ -187,7 +187,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
     {
 
         public $fixtures = [
-            'plugin.Elastic/ActivityLogger.ActivityLogs',
+            'plugin.Elastic/ActivityLogger.EmptyRecords\ActivityLogs',
             'plugin.Elastic/ActivityLogger.Authors',
             'plugin.Elastic/ActivityLogger.Articles',
             'plugin.Elastic/ActivityLogger.Comments',

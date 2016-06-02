@@ -2,9 +2,11 @@
 
 namespace Elastic\ActivityLogger\Model\Table;
 
+use Cake\Core\Configure;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 use Cake\Database\Schema\Table as Schema;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
@@ -87,5 +89,90 @@ class ActivityLogsTable extends Table
     public function buildRules(RulesChecker $rules)
     {
         return $rules;
+    }
+
+    /**
+     * スコープの指定
+     *
+     * $table->find('scope', ['scope' => $entity])
+     *
+     * @param \Cake\ORM\Query $query
+     * @param array $options
+     * @return \Cake\ORM\Query
+     */
+    public function findScope(\Cake\ORM\Query $query, array $options)
+    {
+        if (empty($options['scope'])) {
+            return $query;
+        }
+
+        $where = [];
+        if ($options['scope'] instanceof \Cake\ORM\Entity) {
+            list($scopeModel, $scopeId) = $this->buildObjectParameter($options['scope']);
+            $where[$this->aliasField('scope_model')] = $scopeModel;
+            $where[$this->aliasField('scope_id')] = $scopeId;
+        } elseif (is_string($options['scope'])) {
+            $where[$this->aliasField('scope_model')] = $options['scope'];
+        }
+        $query->where($where);
+        return $query;
+    }
+
+    /**
+     * システムスコープのログの取得
+     *
+     * $table->find('system')
+     *
+     * @param \Cake\ORM\Query $query
+     * @param array $options
+     * @return \Cake\ORM\Query
+     */
+    public function findSystem(\Cake\ORM\Query $query, array $options)
+    {
+        $options['scope'] = '\\' . Configure::read('App.namespace');
+        return $this->findScope($query, $options);
+    }
+
+    /**
+     * 操作者の指定
+     *
+     * $table->find('issuer', ['issuer' => $entity])
+     *
+     * @param \Cake\ORM\Query $query
+     * @param array $options
+     * @return \Cake\ORM\Query
+     */
+    public function findIssuer(\Cake\ORM\Query $query, array $options)
+    {
+        if (empty($options['issuer'])) {
+            return $query;
+        }
+
+        $where = [];
+        if ($options['issuer'] instanceof \Cake\ORM\Entity) {
+            list($scopeModel, $scopeId) = $this->buildObjectParameter($options['issuer']);
+            $where[$this->aliasField('issuer_model')] = $scopeModel;
+            $where[$this->aliasField('issuer_id')] = $scopeId;
+        }
+        $query->where($where);
+        return $query;
+    }
+
+    /**
+     * エンティティからパラメータの取得
+     *
+     * @param \Cake\ORM\Entity $object
+     * @return array [object_model, object_id]
+     */
+    public function buildObjectParameter($object)
+    {
+        $objectModel = null;
+        $objectId = null;
+        if ($object && $object instanceof \Cake\ORM\Entity) {
+            $objectTable = TableRegistry::get($object->source());
+            $objectModel = $objectTable->registryAlias();
+            $objectId = $object->get($objectTable->primaryKey());
+        }
+        return [$objectModel, $objectId];
     }
 }

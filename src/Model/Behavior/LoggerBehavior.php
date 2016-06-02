@@ -278,17 +278,11 @@ class LoggerBehavior extends Behavior
      *
      * @param \Cake\ORM\Entity $object
      * @return array [object_model, object_id]
+     * @see \Elastic\ActivityLogger\Model\Table\ActivityLogsTable::buildObjectParameter()
      */
     private function buildObjectParameter($object)
     {
-        $objectModel = null;
-        $objectId = null;
-        if ($object && $object instanceof \Cake\ORM\Entity) {
-            $objectTable = TableRegistry::get($object->source());
-            $objectModel = $objectTable->registryAlias();
-            $objectId = $object->get($objectTable->primaryKey());
-        }
-        return [$objectModel, $objectId];
+        return $this->getLogTable()->buildObjectParameter($object);
     }
 
     /**
