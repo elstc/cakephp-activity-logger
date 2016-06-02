@@ -13,7 +13,9 @@ namespace Elastic\ActivityLogger\Model\Entity {
     {
 
         protected $_accessible = ['*' => true, 'id' => false];
+
         protected $_hidden = ['password'];
+
     }
 
     /**
@@ -25,7 +27,9 @@ namespace Elastic\ActivityLogger\Model\Entity {
     {
 
         protected $_accessible = ['*' => true, 'id' => false];
+
         protected $_hidden = ['password'];
+
     }
 
     /**
@@ -39,6 +43,7 @@ namespace Elastic\ActivityLogger\Model\Entity {
     {
 
         protected $_accessible = ['*' => true, 'id' => false];
+
     }
 
     /**
@@ -52,6 +57,7 @@ namespace Elastic\ActivityLogger\Model\Entity {
     {
 
         protected $_accessible = ['*' => true, 'id' => false];
+
     }
 
 }
@@ -146,7 +152,8 @@ namespace Elastic\ActivityLogger\Model\Table {
             ]);
 
             $this->addBehavior('Elastic/ActivityLogger.Logger', [
-                'scope' => [
+                'systemScope' => false,
+                'scope'       => [
                     'Elastic/ActivityLogger.Authors',
                     'Elastic/ActivityLogger.Articles',
                     'Elastic/ActivityLogger.Users',
@@ -159,8 +166,7 @@ namespace Elastic\ActivityLogger\Model\Table {
 
 namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
 
-    use Cake\ORM\Entity;
-    use Cake\ORM\Table;
+    use Cake\Core\Configure;
     use Cake\ORM\TableRegistry;
     use Cake\TestSuite\TestCase;
     use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
@@ -187,11 +193,13 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             'plugin.Elastic/ActivityLogger.Comments',
             'plugin.Elastic/ActivityLogger.Users',
         ];
+
         public $dropTables = true;
 
         public function setUp()
         {
             parent::setUp();
+            Configure::write('App.namespace', 'MyApp');
             $this->Logger = new LoggerBehavior(new \Cake\ORM\Table);
             $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
             $this->Articles = TableRegistry::get('Elastic/ActivityLogger.Articles');
@@ -205,7 +213,9 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             unset($this->Logger);
             unset($this->Authors);
             unset($this->Articles);
+            unset($this->Users);
             unset($this->Comments);
+            unset($this->ActivityLogs);
 
             parent::tearDown();
         }
@@ -217,7 +227,16 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
          */
         public function testInitialization()
         {
-            $this->markTestIncomplete('Not implemented yet.');
+            $this->assertSame([
+                'Elastic/ActivityLogger.Authors' => null,
+                '\MyApp'                         => true,
+                ], $this->Authors->logScope(), 'システムスコープがセットされている');
+            $this->assertSame([
+                'Elastic/ActivityLogger.Authors'  => null,
+                'Elastic/ActivityLogger.Articles' => null,
+                'Elastic/ActivityLogger.Users'    => null,
+                ], $this->Comments->logScope(), 'systemScope = false ならばシステムスコープはセットされない');
+            $this->markTestIncomplete('Not cover all');
         }
 
         public function testSave()
@@ -229,7 +248,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->Authors->save($author);
             // アクティビティログが保存されている
             $q = $this->ActivityLogs->find();
-            $this->assertCount(1, $q->all());
+            $this->assertCount(2, $q->all(), 'Authorsスコープとシステムスコープでログは2つ作成される');
 
             $log = $q->first();
             /* @var $log ActivityLog */
@@ -240,7 +259,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->assertEquals([
                 'id'       => 5,
                 'username' => 'foo',
-            ], $log->data, '作成時のデータが記録されている');
+                ], $log->data, '作成時のデータが記録されている');
             $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
 
             // edit
@@ -251,7 +270,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
 
             // アクティビティログが保存されている
             $q = $this->ActivityLogs->find()->order(['id' => 'desc']);
-            $this->assertCount(2, $q->all());
+            $this->assertCount(4, $q->all(), 'Authorsスコープとシステムスコープでログは2つ作成される');
 
             $log = $q->first();
             /* @var $log ActivityLog */
@@ -261,7 +280,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->assertSame('5', $log->object_id, '対象idは5');
             $this->assertEquals([
                 'username' => 'anonymous',
-            ], $log->data, '更新時のデータが記録されている');
+                ], $log->data, '更新時のデータが記録されている');
             $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
         }
 
@@ -271,7 +290,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->Authors->delete($author);
             // アクティビティログが保存されている
             $q = $this->ActivityLogs->find();
-            $this->assertCount(1, $q->all());
+            $this->assertCount(2, $q->all());
 
             $log = $q->first();
             /* @var $log ActivityLog */
@@ -284,7 +303,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
                 'username' => 'mariano',
                 'created'  => '2007-03-17T01:16:23+0900',
                 'updated'  => '2007-03-17T01:18:31+0900',
-            ], $log->data, '削除対象のデータが記録されている');
+                ], $log->data, '削除対象のデータが記録されている');
             $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
         }
 
@@ -292,40 +311,46 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
         {
             $this->assertSame([
                 'Elastic/ActivityLogger.Authors' => null,
-            ], $this->Authors->logScope(), 'ログのスコープが取得できる');
+                '\MyApp'                         => true,
+                ], $this->Authors->logScope(), 'ログのスコープが取得できる');
             //
             $this->assertSame([
                 'Elastic/ActivityLogger.Articles' => null,
                 'Elastic/ActivityLogger.Authors'  => null,
-            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+                '\MyApp'                          => true,
+                ], $this->Articles->logScope(), 'ログのスコープが取得できる');
 
             // セットして取得
             $author = $this->Authors->get(1);
             $this->Authors->logScope($author);
             $this->assertSame([
                 'Elastic/ActivityLogger.Authors' => 1,
-            ], $this->Authors->logScope(), 'ログのスコープが更新されている');
+                '\MyApp'                         => true,
+                ], $this->Authors->logScope(), 'ログのスコープが更新されている');
             //
             $article = $this->Articles->get(2);
             $this->Articles->logScope([$article, $author]);
             $this->assertSame([
                 'Elastic/ActivityLogger.Articles' => 2,
                 'Elastic/ActivityLogger.Authors'  => 1,
-            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+                '\MyApp'                          => true,
+                ], $this->Articles->logScope(), 'ログのスコープが取得できる');
 
             // スコープの追加
             $this->Articles->logScope($this->Comments->get(3));
             $this->assertSame([
                 'Elastic/ActivityLogger.Articles' => 2,
                 'Elastic/ActivityLogger.Authors'  => 1,
+                '\MyApp'                          => true,
                 'Elastic/ActivityLogger.Comments' => 3,
-            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+                ], $this->Articles->logScope(), 'ログのスコープが取得できる');
             // スコープのリセット
             $this->Articles->logScope(false);
             $this->assertSame([
                 'Elastic/ActivityLogger.Articles' => null,
                 'Elastic/ActivityLogger.Authors'  => null,
-            ], $this->Articles->logScope(), 'ログのスコープがリセットされている');
+                '\MyApp'                          => true,
+                ], $this->Articles->logScope(), 'ログのスコープがリセットされている');
         }
 
         public function testSaveWithScope()
@@ -335,10 +360,16 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
                 'password' => 'bar',
             ]);
             $this->Authors->save($author);
-            $log = $this->ActivityLogs->find()->order(['id' => 'desc'])->first();
+            $log = $this->ActivityLogs->find()
+                    ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
+                    ->order(['id' => 'desc'])->first();
             /* @var $log ActivityLog */
-            $this->assertSame('Elastic/ActivityLogger.Authors', $log->scope_model, 'スコープが指定されている');
             $this->assertEquals($author->id, $log->scope_id, 'スコープが指定されている');
+            $log = $this->ActivityLogs->find()
+                    ->where(['scope_model' => '\MyApp'])
+                    ->order(['id' => 'desc'])->first();
+            /* @var $log ActivityLog */
+            $this->assertEquals(1, $log->scope_id, 'スコープが指定されている');
 
             //
             $article = $this->Articles->get(2);
@@ -352,10 +383,10 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->Comments->save($comment);
 
             $logs = $this->ActivityLogs->find()
-            ->where(['object_model' => 'Elastic/ActivityLogger.Comments'])
-            ->order(['id' => 'desc'])
-            ->all()
-            ->toArray();
+                ->where(['object_model' => 'Elastic/ActivityLogger.Comments'])
+                ->order(['id' => 'desc'])
+                ->all()
+                ->toArray();
 
             $this->assertCount(2, $logs);
             $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'スコープが指定されている');
@@ -391,10 +422,10 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->Comments->save($comment);
 
             $logs = $this->ActivityLogs->find()
-            ->where(['object_model' => 'Elastic/ActivityLogger.Comments'])
-            ->order(['id' => 'desc'])
-            ->all()
-            ->toArray();
+                ->where(['object_model' => 'Elastic/ActivityLogger.Comments'])
+                ->order(['id' => 'desc'])
+                ->all()
+                ->toArray();
 
             $this->assertCount(2, $logs);
             $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, '発行者からスコープが指定されている');
@@ -423,9 +454,9 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->Comments->activityLog($level, $message, $context);
 
             $logs = $this->ActivityLogs->find()
-            ->order(['id' => 'desc'])
-            ->all()
-            ->toArray();
+                ->order(['id' => 'desc'])
+                ->all()
+                ->toArray();
 
             $this->assertCount(3, $logs);
             $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, '発行者からスコープが指定されている');
@@ -507,10 +538,10 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->Articles->logIssuer($this->Authors->get(2))->delete($article);
 
             $logs = $this->ActivityLogs->find()
-            ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
-            ->order(['id' => 'asc'])
-            ->all()
-            ->toArray();
+                ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
+                ->order(['id' => 'asc'])
+                ->all()
+                ->toArray();
 
             $this->assertCount(4, $logs);
             $this->assertSame('mariano が記事 #4「バージョン1.0リリース」を作成しました。', $logs[0]->message);
@@ -538,26 +569,26 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
 
             //
             $authorLogs = $this->Authors->find('activity', ['scope' => $author])
-            ->all()
-            ->toArray();
+                ->all()
+                ->toArray();
             $this->assertCount(1, $authorLogs);
             $this->assertSame('Elastic/ActivityLogger.Articles', $authorLogs[0]->object_model);
             //
             $articleLogs = $this->Articles->find('activity', ['scope' => $article])
-            ->all()
-            ->toArray();
+                ->all()
+                ->toArray();
             $this->assertCount(2, $articleLogs);
             $this->assertSame('Elastic/ActivityLogger.Comments', $articleLogs[0]->object_model, '最新のものが上に表示される');
             $this->assertSame('Elastic/ActivityLogger.Articles', $articleLogs[1]->object_model);
             //
             $commentLogs = $this->Comments->find('activity', ['scope' => $comment])
-            ->all()
-            ->toArray();
+                ->all()
+                ->toArray();
             $this->assertCount(0, $commentLogs);
             //
             $userLogs = $this->Users->find('activity', ['scope' => $user])
-            ->all()
-            ->toArray();
+                ->all()
+                ->toArray();
             $this->assertCount(1, $userLogs);
             $this->assertSame('Elastic/ActivityLogger.Comments', $userLogs[0]->object_model);
         }

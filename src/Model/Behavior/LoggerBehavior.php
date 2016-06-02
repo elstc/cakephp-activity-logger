@@ -2,16 +2,15 @@
 
 namespace Elastic\ActivityLogger\Model\Behavior;
 
+use \ArrayObject;
+use Cake\Core\Configure;
+use Cake\Event\Event;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Behavior;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
-use Cake\Datasource\EntityInterface;
-use Cake\Event\Event;
-use Cake\Utility\Hash;
-use \ArrayObject;
-use Psr\Log\LogLevel;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
-use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
+use Psr\Log\LogLevel;
 
 /**
  * Logger behavior
@@ -48,6 +47,7 @@ class LoggerBehavior extends Behavior
     protected $_defaultConfig = [
         'logModel' => 'Elastic/ActivityLogger.ActivityLogs',
         'scope'    => [],
+        'systemScope' => true,
     ];
 
     public function implementedEvents()
@@ -72,9 +72,18 @@ class LoggerBehavior extends Behavior
     public function afterInit(Event $event)
     {
         $scope = $this->config('scope');
+
         if (empty($scope)) {
             $scope = [$this->_table->registryAlias()];
         }
+
+        if ($this->config('systemScope')) {
+            $namespace = $this->config('systemScope') === true
+                ? Configure::read('App.namespace')
+                : $this->config('systemScope');
+            $scope['\\' . $namespace] = true;
+        }
+
         $this->config('scope', $scope, false);
         $this->config('originalScope', $scope);
     }
@@ -392,8 +401,10 @@ class LoggerBehavior extends Behavior
         }
 
         $new = [];
-        foreach ($value as $arg) {
-            if (is_string($arg)) {
+        foreach ($value as $key => $arg) {
+            if (is_string($key)) {
+                $new[$key] = $arg;
+            } elseif (is_string($arg)) {
                 $new[$arg] = null;
             } elseif ($arg instanceof \Cake\ORM\Entity) {
                 $table = TableRegistry::get($arg->source());
