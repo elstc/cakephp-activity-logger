@@ -38,14 +38,14 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      */
     protected $tables = [];
 
-    public function implementedEvents()
+    public function initialize(array $config)
     {
-        return parent::implementedEvents() + [
-            'Model.initialize' => 'onInitializeModel',
-        ];
+        parent::initialize($config);
+        EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
     }
 
     /**
+     * on Controller.startup
      *
      * @param Event $event
      */
@@ -89,7 +89,8 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
             $this->tables[$table->registryAlias()] = $table;
         }
 
-        if (!empty($this->issuer) && $table->hasBehavior('ActivityLogger/Logger')) {
+        // ログインユーザーが取得できていればセットする
+        if (!empty($this->issuer) && $table->behaviors()->hasMethod('logIssuer')) {
             $table->logIssuer($this->issuer);
         }
     }
@@ -102,8 +103,8 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     private function setIssuerToAllModel(\Cake\ORM\Entity $issuer)
     {
         foreach ($this->tables as $alias => $table) {
-            if ($table->hasBehavior('ActivityLogger/Logger')) {
-                $table->logIsseur($issuer);
+            if ($table->behaviors()->hasMethod('logIssuer')) {
+                $table->logIssuer($issuer);
             }
         }
     }
