@@ -48,6 +48,7 @@ class LoggerBehavior extends Behavior
         'logModel' => 'Elastic/ActivityLogger.ActivityLogs',
         'scope'    => [],
         'systemScope' => true,
+        'scopeMap' => [],
     ];
 
     public function implementedEvents()
@@ -313,6 +314,16 @@ class LoggerBehavior extends Behavior
     private function duplicateLogByScope(array $scope, ActivityLog $log, EntityInterface $entity = null)
     {
         $logs = [];
+
+        if (!empty($entity)) {
+            // フィールド値から自動マッピング
+            foreach ($this->config('scopeMap') as $field => $scopeModel) {
+                if (!empty($entity->get($field)) && array_key_exists($scopeModel, $scope)) {
+                    $scope[$scopeModel] = $entity->get($field);
+                }
+            }
+        }
+
         foreach ($scope as $scopeModel => $scopeId) {
             if (!empty($entity) && $scopeModel === $this->_table->registryAlias()) {
                 // モデル自身に対する更新の場合は、entityのidをセットする

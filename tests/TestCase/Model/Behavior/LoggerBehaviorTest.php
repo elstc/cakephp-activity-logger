@@ -401,6 +401,35 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior {
             $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
         }
 
+        public function testSaveWithScopeMap()
+        {
+            //
+            $article = $this->Articles->get(2);
+            $user = $this->Users->get(1);
+            $comment = $this->Comments->newEntity([
+                'article_id' => $article->id,
+                'user_id'    => $user->id,
+                'comment'    => 'Awesome!',
+            ]);
+            $this->Comments->behaviors()->get('Logger')->config('scopeMap', [
+                'article_id' => 'Elastic/ActivityLogger.Articles',
+                'user_id' => 'Elastic/ActivityLogger.Users',
+            ]);
+            $this->Comments->save($comment);
+
+            $logs = $this->ActivityLogs->find()
+                ->where(['object_model' => 'Elastic/ActivityLogger.Comments'])
+                ->order(['id' => 'desc'])
+                ->all()
+                ->toArray();
+
+            $this->assertCount(2, $logs);
+            $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'スコープが指定されている');
+            $this->assertEquals($user->id, $logs[0]->scope_id, 'スコープが指定されている');
+            $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'スコープが指定されている');
+            $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
+        }
+
         public function testSaveWithIssuer()
         {
             $user = $this->Users->get(1);
