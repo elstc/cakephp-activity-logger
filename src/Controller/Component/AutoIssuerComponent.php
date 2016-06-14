@@ -9,6 +9,7 @@ use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\Event\EventListenerInterface;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 
 /**
  * AutoIssuer component
@@ -42,27 +43,23 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     {
         parent::initialize($config);
         EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
+        EventManager::instance()->on('Auth.afterIdentify', [$this, 'onAfterIdentify']);
     }
 
     /**
-     * on Controller.startup
+     * on Auth.afterIdentify
+     *
+     * - ログインユーザーをセット
+     * - ログインユーザーを登録されているモデルにセットする
      *
      * @param Event $event
      */
-    public function startup(Event $event)
+    public function onAfterIdentify(Event $event)
     {
-        if (!$this->_registry->get('Auth')) {
-            // Authコンポーネントが無効
-            return null;
-        }
-
-        $controller = $event->subject();
-        /* @var $controller \Cake\Controller\Controller */
-        $auth = $this->_registry->get('Auth');
-        /* @var $auth AuthComponent */
-
-        // ログインユーザーを取得
-        $this->issuer = $this->getIssuer();
+        list($user, $auth) = $event->data();
+        /* @var $user array */
+        /* @var $auth \Cake\Auth\BaseAuthenticate */
+        $this->issuer = $this->getIssuerFromUserArray($user);
 
         if (!$this->issuer) {
             // 未ログイン
@@ -112,14 +109,13 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     /**
      * ユーザーエンティティの取得
      *
+     * @param array $user
      * @return \Cake\ORM\Entity|null
      */
-    private function getIssuer()
+    private function getIssuerFromUserArray($user)
     {
-        $auth = $this->_registry->get('Auth');
-        /* @var $auth AuthComponent */
         $table = $this->getUserModel();
-        $userId = $auth->user($table->primaryKey());
+        $userId = Hash::get($user, $table->primaryKey());
         if ($userId) {
             return $table->get($userId);
         }
