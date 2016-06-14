@@ -39,11 +39,40 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      */
     protected $tables = [];
 
-    public function initialize(array $config)
+    public function implementedEvents()
     {
-        parent::initialize($config);
         EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
-        EventManager::instance()->on('Auth.afterIdentify', [$this, 'onAfterIdentify']);
+
+        return parent::implementedEvents() + [
+            'Auth.afterIdentify' => 'onAfterIdentify',
+        ];
+    }
+
+    /**
+     * on Controller.startup
+     *
+     * @param Event $event
+     */
+    public function startup(Event $event)
+    {
+        if (!$this->_registry->get('Auth')) {
+            // Authコンポーネントが無効
+            return null;
+        }
+
+        $auth = $this->_registry->get('Auth');
+        /* @var $auth AuthComponent */
+
+        // ログインユーザーを取得
+        $this->issuer = $this->getIssuerFromUserArray($auth->user());
+
+        if (!$this->issuer) {
+            // 未ログイン
+            return null;
+        }
+
+        // 登録されているモデルにセットする
+        $this->setIssuerToAllModel($this->issuer);
     }
 
     /**
@@ -115,7 +144,7 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     private function getIssuerFromUserArray($user)
     {
         $table = $this->getUserModel();
-        $userId = Hash::get($user, $table->primaryKey());
+        $userId = Hash::get((array)$user, $table->primaryKey());
         if ($userId) {
             return $table->get($userId);
         }
