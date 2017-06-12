@@ -2,6 +2,7 @@
     "name": "elstc/cakephp-activity-logger",
     "description": "ActivityLogger plugin for CakePHP",
     "type": "cakephp-plugin",
+    "license": ["MIT"],
     "require": {
         "php": ">=5.4.16",
         "cakephp/cakephp": "~3.1",
