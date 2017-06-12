@@ -1,5 +1,5 @@
 {
-    "name": "elastic/cakephp-activity-logger",
+    "name": "elstc/cakephp-activity-logger",
     "description": "ActivityLogger plugin for CakePHP",
     "type": "cakephp-plugin",
     "require": {
