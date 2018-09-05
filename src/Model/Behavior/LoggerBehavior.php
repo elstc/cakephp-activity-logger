@@ -7,6 +7,7 @@ use Cake\Core\Configure;
 use Cake\Event\Event;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Behavior;
+use Cake\ORM\Entity;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
@@ -327,7 +328,7 @@ class LoggerBehavior extends Behavior
         foreach ($scope as $scopeModel => $scopeId) {
             if (!empty($entity) && $scopeModel === $this->_table->registryAlias()) {
                 // モデル自身に対する更新の場合は、entityのidをセットする
-                $scopeId = $entity->get($this->_table->primaryKey());
+                $scopeId = $this->getLogTable()->getScopeId($this->_table, $entity);
             }
             if (empty($scopeId)) {
                 continue;
@@ -425,7 +426,8 @@ class LoggerBehavior extends Behavior
                 $new[$arg] = null;
             } elseif ($arg instanceof \Cake\ORM\Entity) {
                 $table = TableRegistry::get($arg->source());
-                $new[$table->registryAlias()] = $arg->get($table->primaryKey());
+                $scopeId = $this->getLogTable()->getScopeId($table, $arg);
+                $new[$table->registryAlias()] = $scopeId;
             }
         }
 

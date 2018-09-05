@@ -3,6 +3,7 @@
 namespace Elastic\ActivityLogger\Model\Table;
 
 use Cake\Core\Configure;
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -171,8 +172,32 @@ class ActivityLogsTable extends Table
         if ($object && $object instanceof \Cake\ORM\Entity) {
             $objectTable = TableRegistry::get($object->source());
             $objectModel = $objectTable->registryAlias();
-            $objectId = $object->get($objectTable->primaryKey());
+            $objectId = $this->getScopeId($objectTable, $object);
         }
         return [$objectModel, $objectId];
+    }
+
+    /**
+     * プライマリキーを取得
+     *
+     * 複数プライマリキーの場合は連結して返す
+     *
+     * @param Table $table
+     * @param EntityInterface $entity
+     * @return string|int
+     */
+    public function getScopeId(Table $table, EntityInterface $entity)
+    {
+        $primaryKey = $table->primaryKey();
+        if (is_string($primaryKey)) {
+            return $entity->get($primaryKey);
+        }
+        // 主キーが複数の場合は値を連結する
+        $ids = [];
+        foreach ($primaryKey as $field) {
+            $ids[$field] = $entity->get($field);
+        }
+
+        return implode('_', array_values($ids));
     }
 }
