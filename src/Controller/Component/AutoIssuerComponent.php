@@ -24,6 +24,7 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      */
     protected $_defaultConfig = [
         'userModel' => 'Users',
+        'initializedTables' => [],
     ];
 
     /**
@@ -38,6 +39,19 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      * @var \Cake\ORM\Table[]
      */
     protected $tables = [];
+
+    /**
+     * @var \Cake\ORM\Locator\LocatorInterface
+     */
+    protected $tableLocator;
+
+    public function __construct(ComponentRegistry $registry, array $config = [])
+    {
+        parent::__construct($registry, $config);
+
+        $this->tableLocator = TableRegistry::locator();
+        $this->setInitializedTables($this->getConfig('initializedTables'));
+    }
 
     public function implementedEvents()
     {
@@ -118,6 +132,21 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
         // ログインユーザーが取得できていればセットする
         if (!empty($this->issuer) && $table->behaviors()->hasMethod('logIssuer')) {
             $table->logIssuer($this->issuer);
+        }
+    }
+
+    /**
+     * 初期化済テーブルを$tablesにセット
+     *
+     * @param array $tables
+     * @return void
+     */
+    private function setInitializedTables(array $tables)
+    {
+        foreach ($tables as $tableName) {
+            if ($this->tableLocator->exists($tableName)) {
+                $this->tables[$tableName] = $this->tableLocator->get($tableName);
+            }
         }
     }
 
