@@ -90,8 +90,9 @@ class LoggerBehavior extends Behavior
         $this->config('originalScope', $scope);
     }
 
-    public function afterSave(Event $event, EntityInterface $entity, ArrayObject $options)
+    public function afterSave(Event $event, Entity $entity, ArrayObject $options)
     {
+        $entity->source($this->_table->registryAlias()); // for entity of belongsToMany intermediate table
         $log = $this->buildLog($entity, $this->config('issuer'));
         $log->action = $entity->isNew() ? ActivityLog::ACTION_CREATE : ActivityLog::ACTION_UPDATE;
         $log->data = $this->getDirtyData($entity);
@@ -102,8 +103,9 @@ class LoggerBehavior extends Behavior
         $this->saveLogs($logs);
     }
 
-    public function afterDelete(Event $event, EntityInterface $entity, ArrayObject $options)
+    public function afterDelete(Event $event, Entity $entity, ArrayObject $options)
     {
+        $entity->source($this->_table->registryAlias()); // for entity of belongsToMany intermediate table
         $log = $this->buildLog($entity, $this->config('issuer'));
         $log->action = ActivityLog::ACTION_DELETE;
         $log->data = $this->getData($entity);
