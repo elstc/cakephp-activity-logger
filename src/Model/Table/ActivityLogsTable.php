@@ -3,21 +3,20 @@
 namespace Elastic\ActivityLogger\Model\Table;
 
 use Cake\Core\Configure;
+use Cake\Database\Schema\Table as Schema;
 use Cake\Datasource\EntityInterface;
+use Cake\ORM\Entity;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
-use Cake\Database\Schema\Table as Schema;
-use Elastic\ActivityLogger\Model\Entity\ActivityLog;
 
 /**
  * ActivityLogs Model
  */
 class ActivityLogsTable extends Table
 {
-
     /**
      * Initialize method
      *
@@ -33,10 +32,17 @@ class ActivityLogsTable extends Table
         $this->primaryKey('id');
     }
 
+    /**
+     * Add data type
+     *
+     * @param Schema $table the table
+     * @return Schema
+     */
     protected function _initializeSchema(Schema $table)
     {
         $schema = parent::_initializeSchema($table);
         $schema->columnType('data', 'json_data');
+
         return $schema;
     }
 
@@ -97,18 +103,18 @@ class ActivityLogsTable extends Table
      *
      * $table->find('scope', ['scope' => $entity])
      *
-     * @param \Cake\ORM\Query $query
-     * @param array $options
-     * @return \Cake\ORM\Query
+     * @param Query $query the Query
+     * @param array $options query options
+     * @return Query
      */
-    public function findScope(\Cake\ORM\Query $query, array $options)
+    public function findScope(Query $query, array $options)
     {
         if (empty($options['scope'])) {
             return $query;
         }
 
         $where = [];
-        if ($options['scope'] instanceof \Cake\ORM\Entity) {
+        if ($options['scope'] instanceof Entity) {
             list($scopeModel, $scopeId) = $this->buildObjectParameter($options['scope']);
             $where[$this->aliasField('scope_model')] = $scopeModel;
             $where[$this->aliasField('scope_id')] = $scopeId;
@@ -116,6 +122,7 @@ class ActivityLogsTable extends Table
             $where[$this->aliasField('scope_model')] = $options['scope'];
         }
         $query->where($where);
+
         return $query;
     }
 
@@ -124,13 +131,14 @@ class ActivityLogsTable extends Table
      *
      * $table->find('system')
      *
-     * @param \Cake\ORM\Query $query
-     * @param array $options
-     * @return \Cake\ORM\Query
+     * @param Query $query the Query
+     * @param array $options query options
+     * @return Query
      */
-    public function findSystem(\Cake\ORM\Query $query, array $options)
+    public function findSystem(Query $query, array $options)
     {
         $options['scope'] = '\\' . Configure::read('App.namespace');
+
         return $this->findScope($query, $options);
     }
 
@@ -139,41 +147,43 @@ class ActivityLogsTable extends Table
      *
      * $table->find('issuer', ['issuer' => $entity])
      *
-     * @param \Cake\ORM\Query $query
-     * @param array $options
-     * @return \Cake\ORM\Query
+     * @param Query $query the Query
+     * @param array $options query options
+     * @return Query
      */
-    public function findIssuer(\Cake\ORM\Query $query, array $options)
+    public function findIssuer(Query $query, array $options)
     {
         if (empty($options['issuer'])) {
             return $query;
         }
 
         $where = [];
-        if ($options['issuer'] instanceof \Cake\ORM\Entity) {
+        if ($options['issuer'] instanceof Entity) {
             list($scopeModel, $scopeId) = $this->buildObjectParameter($options['issuer']);
             $where[$this->aliasField('issuer_model')] = $scopeModel;
             $where[$this->aliasField('issuer_id')] = $scopeId;
         }
         $query->where($where);
+
         return $query;
     }
 
     /**
      * エンティティからパラメータの取得
      *
-     * @param \Cake\ORM\Entity $object
+     * @param Entity $object a entity
      * @return array [object_model, object_id]
      */
     public function buildObjectParameter($object)
     {
         $objectModel = null;
         $objectId = null;
-        if ($object && $object instanceof \Cake\ORM\Entity) {
+        if ($object && $object instanceof Entity) {
             $objectTable = TableRegistry::get($object->source());
             $objectModel = $objectTable->registryAlias();
             $objectId = $this->getScopeId($objectTable, $object);
         }
+
         return [$objectModel, $objectId];
     }
 
@@ -182,8 +192,8 @@ class ActivityLogsTable extends Table
      *
      * 複数プライマリキーの場合は連結して返す
      *
-     * @param Table $table
-     * @param EntityInterface $entity
+     * @param Table $table target table
+     * @param EntityInterface $entity a entity
      * @return string|int
      */
     public function getScopeId(Table $table, EntityInterface $entity)
