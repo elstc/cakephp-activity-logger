@@ -137,8 +137,8 @@ class LoggerBehaviorTest extends TestCase
         $this->assertEquals([
             'id' => 1,
             'username' => 'mariano',
-            'created' => '2007-03-17T01:16:23+0000',
-            'updated' => '2007-03-17T01:18:31+0000',
+            'created' => '2007-03-17T01:16:23+00:00',
+            'updated' => '2007-03-17T01:18:31+00:00',
         ], $log->data, '削除対象のデータが記録されている');
         $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
     }

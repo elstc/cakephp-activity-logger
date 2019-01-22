@@ -28,7 +28,15 @@ $here = __DIR__;
 
 chdir($root);
 require $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
-Configure::write('Error.errorLevel', E_ALL & ~E_USER_DEPRECATED);
+
+// Disable deprecations for now when using 3.6
+if (version_compare(Configure::version(), '3.6.0', '>=')) {
+    error_reporting(E_ALL ^ E_USER_DEPRECATED);
+}
+if (class_exists('\Cake\I18n\FrozenTime')) {
+    \Cake\I18n\FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
+}
+\Cake\I18n\Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 
 Plugin::load('Elastic/ActivityLogger', ['path' => dirname(dirname(__FILE__)) . DS, 'bootstrap' => true]);
 
