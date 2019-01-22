@@ -7,21 +7,25 @@ use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
+use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
+use Elastic\ActivityLogger\Model\Table\ArticlesTable;
+use Elastic\ActivityLogger\Model\Table\AuthorsTable;
+use Elastic\ActivityLogger\Model\Table\CommentsTable;
+use Elastic\ActivityLogger\Model\Table\UsersTable;
 use Psr\Log\LogLevel;
 
 /**
  * Elastic\ActivityLogger\Model\Behavior\LoggerBehavior Test Case
  *
- * @property \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $ActivityLogs
- * @property \Elastic\ActivityLogger\Model\Table\AuthorsTable $Authors
- * @property \Elastic\ActivityLogger\Model\Table\ArticlesTable $Articles
- * @property \Elastic\ActivityLogger\Model\Table\CommentsTable $Comments
- * @property \Elastic\ActivityLogger\Model\Table\UsersTable $Users
- * @property \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior $Logger
+ * @property ActivityLogsTable $ActivityLogs
+ * @property AuthorsTable $Authors
+ * @property ArticlesTable $Articles
+ * @property CommentsTable $Comments
+ * @property UsersTable $Users
+ * @property LoggerBehavior $Logger
  */
 class LoggerBehaviorTest extends TestCase
 {
-
     public $fixtures = [
         'plugin.Elastic/ActivityLogger.EmptyRecords\ActivityLogs',
         'plugin.Elastic/ActivityLogger.Authors',
@@ -65,13 +69,13 @@ class LoggerBehaviorTest extends TestCase
     {
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => null,
-            '\MyApp'                         => true,
-            ], $this->Authors->logScope(), 'システムスコープがセットされている');
+            '\MyApp' => true,
+        ], $this->Authors->logScope(), 'システムスコープがセットされている');
         $this->assertSame([
-            'Elastic/ActivityLogger.Authors'  => null,
+            'Elastic/ActivityLogger.Authors' => null,
             'Elastic/ActivityLogger.Articles' => null,
-            'Elastic/ActivityLogger.Users'    => null,
-            ], $this->Comments->logScope(), 'systemScope = false ならばシステムスコープはセットされない');
+            'Elastic/ActivityLogger.Users' => null,
+        ], $this->Comments->logScope(), 'systemScope = false ならばシステムスコープはセットされない');
         $this->markTestIncomplete('Not cover all');
     }
 
@@ -93,9 +97,9 @@ class LoggerBehaviorTest extends TestCase
         $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
         $this->assertSame('5', $log->object_id, '対象idは5');
         $this->assertEquals([
-            'id'       => 5,
+            'id' => 5,
             'username' => 'foo',
-            ], $log->data, '作成時のデータが記録されている');
+        ], $log->data, '作成時のデータが記録されている');
         $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
 
         // edit
@@ -116,7 +120,7 @@ class LoggerBehaviorTest extends TestCase
         $this->assertSame('5', $log->object_id, '対象idは5');
         $this->assertEquals([
             'username' => 'anonymous',
-            ], $log->data, '更新時のデータが記録されている');
+        ], $log->data, '更新時のデータが記録されている');
         $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
     }
 
@@ -147,30 +151,30 @@ class LoggerBehaviorTest extends TestCase
     {
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => null,
-            '\MyApp'                         => true,
-            ], $this->Authors->logScope(), 'ログのスコープが取得できる');
+            '\MyApp' => true,
+        ], $this->Authors->logScope(), 'ログのスコープが取得できる');
         //
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
-            'Elastic/ActivityLogger.Authors'  => null,
-            '\MyApp'                          => true,
-            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+            'Elastic/ActivityLogger.Authors' => null,
+            '\MyApp' => true,
+        ], $this->Articles->logScope(), 'ログのスコープが取得できる');
 
         // セットして取得
         $author = $this->Authors->get(1);
         $this->Authors->logScope($author);
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => 1,
-            '\MyApp'                         => true,
-            ], $this->Authors->logScope(), 'ログのスコープが更新されている');
+            '\MyApp' => true,
+        ], $this->Authors->logScope(), 'ログのスコープが更新されている');
         //
         $article = $this->Articles->get(2);
         $this->Articles->logScope([$article, $author]);
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => 2,
-            'Elastic/ActivityLogger.Authors'  => 1,
-            '\MyApp'                          => true,
-            ], $this->Articles->logScope(), 'ログのスコープが取得できる');
+            'Elastic/ActivityLogger.Authors' => 1,
+            '\MyApp' => true,
+        ], $this->Articles->logScope(), 'ログのスコープが取得できる');
 
         // スコープの追加
         $this->Articles->logScope($this->Comments->get(3));
@@ -178,21 +182,21 @@ class LoggerBehaviorTest extends TestCase
         $this->Articles->logScope(['Another' => 4, 'Foo' => '005', 'Hoge']);
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => 2,
-            'Elastic/ActivityLogger.Authors'  => 1,
-            '\MyApp'                          => true,
+            'Elastic/ActivityLogger.Authors' => 1,
+            '\MyApp' => true,
             'Elastic/ActivityLogger.Comments' => 3,
             'Custom' => true,
             'Another' => 4,
             'Foo' => '005',
             'Hoge' => true,
-            ], $this->Articles->logScope(), 'ログのスコープがセットされている');
+        ], $this->Articles->logScope(), 'ログのスコープがセットされている');
         // スコープのリセット
         $this->Articles->logScope(false);
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
-            'Elastic/ActivityLogger.Authors'  => null,
-            '\MyApp'                          => true,
-            ], $this->Articles->logScope(), 'ログのスコープがリセットされている');
+            'Elastic/ActivityLogger.Authors' => null,
+            '\MyApp' => true,
+        ], $this->Articles->logScope(), 'ログのスコープがリセットされている');
     }
 
     public function testSaveWithScope()
@@ -203,13 +207,13 @@ class LoggerBehaviorTest extends TestCase
         ]);
         $this->Authors->save($author);
         $log = $this->ActivityLogs->find()
-                ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
-                ->order(['id' => 'desc'])->first();
+            ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
+            ->order(['id' => 'desc'])->first();
         /* @var $log ActivityLog */
         $this->assertEquals($author->id, $log->scope_id, 'スコープが指定されている');
         $log = $this->ActivityLogs->find()
-                ->where(['scope_model' => '\MyApp'])
-                ->order(['id' => 'desc'])->first();
+            ->where(['scope_model' => '\MyApp'])
+            ->order(['id' => 'desc'])->first();
         /* @var $log ActivityLog */
         $this->assertEquals(1, $log->scope_id, 'スコープが指定されている');
 
@@ -218,8 +222,8 @@ class LoggerBehaviorTest extends TestCase
         $user = $this->Users->get(1);
         $comment = $this->Comments->newEntity([
             'article_id' => $article->id,
-            'user_id'    => $user->id,
-            'comment'    => 'Awesome!',
+            'user_id' => $user->id,
+            'comment' => 'Awesome!',
         ]);
         $this->Comments->logScope([$article, $user]);
         $this->Comments->save($comment);
@@ -244,8 +248,8 @@ class LoggerBehaviorTest extends TestCase
         $user = $this->Users->get(1);
         $comment = $this->Comments->newEntity([
             'article_id' => $article->id,
-            'user_id'    => $user->id,
-            'comment'    => 'Awesome!',
+            'user_id' => $user->id,
+            'comment' => 'Awesome!',
         ]);
         $this->Comments->behaviors()->get('Logger')->config('scopeMap', [
             'article_id' => 'Elastic/ActivityLogger.Articles',
@@ -285,8 +289,8 @@ class LoggerBehaviorTest extends TestCase
         $user = $this->Users->get(1);
         $comment = $this->Comments->newEntity([
             'article_id' => $article->id,
-            'user_id'    => $user->id,
-            'comment'    => 'Awesome!',
+            'user_id' => $user->id,
+            'comment' => 'Awesome!',
         ]);
         $this->Comments->logIssuer($user);
         $this->Comments->logScope($article);
@@ -318,7 +322,7 @@ class LoggerBehaviorTest extends TestCase
         $author = $this->Authors->get(1);
         $context = [
             'issuer' => $user,
-            'scope'  => [$article, $author],
+            'scope' => [$article, $author],
             'object' => $this->Comments->get(2),
             'action' => 'publish',
         ];
@@ -371,8 +375,8 @@ class LoggerBehaviorTest extends TestCase
             }
 
             $message = '';
-            $object = $context['object'] ? : null;
-            $issuer = $context['issuer'] ? : null;
+            $object = $context['object'] ?: null;
+            $issuer = $context['issuer'] ?: null;
             switch ($log->action) {
                 case ActivityLog::ACTION_CREATE:
                     $message = sprintf('%3$s が記事 #%1$s「%2$s」を作成しました。', $object->id, $object->title, $issuer->username);
@@ -383,17 +387,18 @@ class LoggerBehaviorTest extends TestCase
                 case ActivityLog::ACTION_DELETE:
                     $message = sprintf('%3$s が記事 #%1$s「%2$s」を削除しました。', $object->id, $object->title, $issuer->username);
                     break;
-                default :
+                default:
                     break;
             }
+
             return $message;
         });
 
         // 記事を新規作成
         $author = $this->Authors->get(1);
         $article = $this->Articles->newEntity([
-            'title'  => 'バージョン1.0リリース',
-            'body'   => '新しいバージョン 1.0 をリリースしました。',
+            'title' => 'バージョン1.0リリース',
+            'body' => '新しいバージョン 1.0 をリリースしました。',
             'author' => $author,
         ]);
         $this->Articles->logIssuer($author)->save($article);
@@ -425,16 +430,16 @@ class LoggerBehaviorTest extends TestCase
     {
         $author = $this->Authors->get(1);
         $article = $this->Articles->newEntity([
-            'title'  => 'new article',
-            'body'   => 'new content.',
+            'title' => 'new article',
+            'body' => 'new content.',
             'author' => $author,
         ]);
         $this->Articles->logIssuer($author)->save($article);
         $user = $this->Users->get(2);
         $comment = $this->Comments->newEntity([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'article_id' => $article->id,
-            'comment'    => 'new comment',
+            'comment' => 'new comment',
         ]);
         $this->Comments->logIssuer($user)->logScope([$article])->save($comment);
 

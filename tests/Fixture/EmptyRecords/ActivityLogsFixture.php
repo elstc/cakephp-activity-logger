@@ -10,7 +10,6 @@ use Cake\TestSuite\Fixture\TestFixture;
  */
 class ActivityLogsFixture extends TestFixture
 {
-
     public $fields = [
         'id' => ['type' => 'biginteger', 'length' => 20, 'unsigned' => true, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
         'created_at' => ['type' => 'timestamp', 'length' => null, 'null' => false, 'default' => 'CURRENT_TIMESTAMP', 'comment' => '', 'precision' => null],
@@ -36,10 +35,9 @@ class ActivityLogsFixture extends TestFixture
         ],
         '_options' => [
             'engine' => 'InnoDB',
-            'collation' => 'utf8_general_ci'
+            'collation' => 'utf8_general_ci',
         ],
     ];
 
     public $records = [];
-
 }

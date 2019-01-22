@@ -6,8 +6,11 @@ use Cake\Controller\Component;
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Component\AuthComponent;
 use Cake\Event\Event;
-use Cake\Event\EventManager;
 use Cake\Event\EventListenerInterface;
+use Cake\Event\EventManager;
+use Cake\ORM\Entity;
+use Cake\ORM\Locator\LocatorInterface;
+use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 
@@ -16,7 +19,6 @@ use Cake\Utility\Hash;
  */
 class AutoIssuerComponent extends Component implements EventListenerInterface
 {
-
     /**
      * Default configuration.
      *
@@ -30,21 +32,27 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     /**
      * ログインユーザー
      *
-     * @var \Cake\ORM\Entity
+     * @var Entity
      */
     protected $issuer = null;
 
     /**
      *
-     * @var \Cake\ORM\Table[]
+     * @var Table[]
      */
     protected $tables = [];
 
     /**
-     * @var \Cake\ORM\Locator\LocatorInterface
+     * @var LocatorInterface
      */
     protected $tableLocator;
 
+    /**
+     * AutoIssuerComponent constructor.
+     *
+     * @param ComponentRegistry $registry the ComponentRegistry
+     * @param array $config the config option
+     */
     public function __construct(ComponentRegistry $registry, array $config = [])
     {
         parent::__construct($registry, $config);
@@ -53,19 +61,23 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
         $this->setInitializedTables($this->config('initializedTables'));
     }
 
+    /**
+     * @return array
+     */
     public function implementedEvents()
     {
         EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
 
         return parent::implementedEvents() + [
-            'Auth.afterIdentify' => 'onAfterIdentify',
-        ];
+                'Auth.afterIdentify' => 'onAfterIdentify',
+            ];
     }
 
     /**
      * on Controller.startup
      *
-     * @param Event $event
+     * @param Event $event the Event
+     * @return null
      */
     public function startup(Event $event)
     {
@@ -95,7 +107,8 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      * - ログインユーザーをセット
      * - ログインユーザーを登録されているモデルにセットする
      *
-     * @param Event $event
+     * @param Event $event the Event
+     * @return null
      */
     public function onAfterIdentify(Event $event)
     {
@@ -119,13 +132,14 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      * - テーブルリストへの追加
      * - Issuerのセット
      *
-     * @param Event $event
+     * @param Event $event the event
+     * @return void
      */
     public function onInitializeModel(Event $event)
     {
         $table = $event->subject();
-        /* @var $table \Cake\ORM\Table */
-        if (!in_array($table->registryAlias(), array_keys($this->tables))) {
+        /* @var $table Table */
+        if (!array_key_exists($table->registryAlias(), $this->tables)) {
             $this->tables[$table->registryAlias()] = $table;
         }
 
@@ -138,7 +152,7 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     /**
      * 初期化済テーブルを$tablesにセット
      *
-     * @param array $tables
+     * @param array $tables tables
      * @return void
      */
     private function setInitializedTables(array $tables)
@@ -153,9 +167,10 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     /**
      * 登録されているモデルにログインユーザーをセットする
      *
-     * @param \Cake\ORM\Entity $issuer
+     * @param Entity $issuer A issuer
+     * @return void
      */
-    private function setIssuerToAllModel(\Cake\ORM\Entity $issuer)
+    private function setIssuerToAllModel(Entity $issuer)
     {
         foreach ($this->tables as $alias => $table) {
             if ($table->behaviors()->hasMethod('logIssuer')) {
@@ -167,8 +182,8 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     /**
      * ユーザーエンティティの取得
      *
-     * @param array $user
-     * @return \Cake\ORM\Entity|null
+     * @param array $user a User entity
+     * @return Entity|null
      */
     private function getIssuerFromUserArray($user)
     {
@@ -177,13 +192,14 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
         if ($userId) {
             return $table->get($userId);
         }
+
         return null;
     }
 
     /**
      * ユーザーテーブルの取得
      *
-     * @return \Cake\ORM\Table
+     * @return Table
      */
     private function getUserModel()
     {

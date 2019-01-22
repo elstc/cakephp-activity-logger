@@ -11,7 +11,6 @@ use Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent;
  */
 class AutoIssuerComponentTest extends TestCase
 {
-
     /**
      * Test subject
      *

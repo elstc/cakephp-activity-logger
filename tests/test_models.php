@@ -2,7 +2,7 @@
 
 namespace Elastic\ActivityLogger\Model\Entity {
 
-    use Cake\ORM\Entity;
+    use Cake\ORM\Entity;// @codingStandardsIgnoreLine
 
     /**
      * @property integer $id
@@ -11,11 +11,9 @@ namespace Elastic\ActivityLogger\Model\Entity {
      */
     class Author extends Entity
     {
-
         protected $_accessible = ['*' => true, 'id' => false];
 
         protected $_hidden = ['password'];
-
     }
 
     /**
@@ -25,11 +23,9 @@ namespace Elastic\ActivityLogger\Model\Entity {
      */
     class User extends Entity
     {
-
         protected $_accessible = ['*' => true, 'id' => false];
 
         protected $_hidden = ['password'];
-
     }
 
     /**
@@ -41,9 +37,7 @@ namespace Elastic\ActivityLogger\Model\Entity {
      */
     class Article extends Entity
     {
-
         protected $_accessible = ['*' => true, 'id' => false];
-
     }
 
     /**
@@ -55,23 +49,19 @@ namespace Elastic\ActivityLogger\Model\Entity {
      */
     class Comment extends Entity
     {
-
         protected $_accessible = ['*' => true, 'id' => false];
-
     }
-
 }
 
 namespace Elastic\ActivityLogger\Model\Table {
 
-    use Cake\ORM\Table;
+    use Cake\ORM\Table;// @codingStandardsIgnoreLine
 
     /**
      * @param \Cake\ORM\Association\HasMany $Articles
      */
     class AuthorsTable extends Table
     {
-
         use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
 
         public function initialize(array $config)
@@ -90,7 +80,6 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class UsersTable extends Table
     {
-
         use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
 
         public function initialize(array $config)
@@ -110,7 +99,6 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class ArticlesTable extends Table
     {
-
         use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
 
         public function initialize(array $config)
@@ -138,7 +126,6 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class CommentsTable extends Table
     {
-
         use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
 
         public function initialize(array $config)
@@ -153,7 +140,7 @@ namespace Elastic\ActivityLogger\Model\Table {
 
             $this->addBehavior('Elastic/ActivityLogger.Logger', [
                 'systemScope' => false,
-                'scope'       => [
+                'scope' => [
                     'Elastic/ActivityLogger.Authors',
                     'Elastic/ActivityLogger.Articles',
                     'Elastic/ActivityLogger.Users',
@@ -161,5 +148,4 @@ namespace Elastic\ActivityLogger\Model\Table {
             ]);
         }
     }
-
 }

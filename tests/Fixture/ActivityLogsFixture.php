@@ -3,8 +3,8 @@
 namespace Elastic\ActivityLogger\Test\Fixture;
 
 use Cake\TestSuite\Fixture\TestFixture;
-use Psr\Log\LogLevel;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
+use Psr\Log\LogLevel;
 
 /**
  * ActivityLogsFixture

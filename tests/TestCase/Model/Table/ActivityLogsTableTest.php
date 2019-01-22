@@ -3,20 +3,19 @@
 namespace Elastic\ActivityLogger\Test\TestCase\Model\Table;
 
 use Cake\Core\Configure;
-use Cake\ORM\Entity;
 use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
+use Elastic\ActivityLogger\Model\Table\AuthorsTable;
 
 /**
  * Elastic\ActivityLogger\Model\Table\ActivityLogsTable Test Case
  *
  * @property ActivityLogsTable $ActivityLogs
- * @property \Elastic\ActivityLogger\Model\Table\AuthorsTable $Authors
+ * @property AuthorsTable $Authors
  */
 class ActivityLogsTableTest extends TestCase
 {
-
     /**
      * Fixtures
      *
@@ -87,13 +86,13 @@ class ActivityLogsTableTest extends TestCase
         //
         $author = $this->Authors->get(1);
         $logs = $this->ActivityLogs->find('scope', ['scope' => $author])
-                ->all()->toArray();
+            ->all()->toArray();
         $this->assertCount(3, $logs);
         $this->assertSame('Elastic/ActivityLogger.Authors', $logs[0]->scope_model);
         $this->assertSame('1', $logs[0]->scope_id);
         //
         $logs = $this->ActivityLogs->find('scope', ['scope' => 'Custom'])
-                ->all()->toArray();
+            ->all()->toArray();
         $this->assertCount(1, $logs);
         $this->assertSame('Custom', $logs[0]->scope_model);
         $this->assertSame('1', $logs[0]->scope_id);
@@ -104,7 +103,7 @@ class ActivityLogsTableTest extends TestCase
         //
         $author = $this->Authors->get(2);
         $logs = $this->ActivityLogs->find('issuer', ['issuer' => $author])
-                ->all()->toArray();
+            ->all()->toArray();
         $this->assertCount(1, $logs);
         $this->assertSame('Elastic/ActivityLogger.Authors', $logs[0]->issuer_model);
         $this->assertSame('2', $logs[0]->issuer_id);
@@ -114,7 +113,7 @@ class ActivityLogsTableTest extends TestCase
     {
         $this->markTestIncomplete();
         $logs = $this->ActivityLogs->find('system')
-                ->all()->toArray();
+            ->all()->toArray();
         $this->assertCount(1, $logs);
         $this->assertSame('\MyApp', $logs[0]->scope_model);
         $this->assertSame('1', $logs[0]->scope_id);

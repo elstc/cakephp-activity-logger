@@ -25,7 +25,6 @@ use Cake\ORM\Entity;
  */
 class ActivityLog extends Entity
 {
-
     const ACTION_CREATE = 'create';
     const ACTION_UPDATE = 'update';
     const ACTION_DELETE = 'delete';
@@ -41,7 +40,7 @@ class ActivityLog extends Entity
      * @var array
      */
     protected $_accessible = [
-        '*'  => true,
+        '*' => true,
         'id' => false,
     ];
 }

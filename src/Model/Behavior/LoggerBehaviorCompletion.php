@@ -8,12 +8,16 @@
 
 namespace Elastic\ActivityLogger\Model\Behavior;
 
+use Cake\ORM\Entity;
+use Cake\ORM\Table;
+use Elastic\ActivityLogger\Model\Entity\ActivityLog;
+
 /**
  * LoggerBehaviorのメソッド補完
  */
-trait LoggerBehaviorCompletion
+// @codingStandardsIgnoreStart
+trait LoggerBehaviorCompletion// @codingStandardsIgnoreEnd
 {
-
     /**
      * ログスコープの設定
      *
@@ -28,10 +32,10 @@ trait LoggerBehaviorCompletion
     /**
      * ログ発行者の設定
      *
-     * @param \Cake\ORM\Entity $issuer
+     * @param Entity $issuer the log issuer
      * @return Table
      */
-    public function logIssuer(\Cake\ORM\Entity $issuer = null)
+    public function logIssuer(Entity $issuer = null)
     {
         return $this->__call('logIssuer', func_get_args());
     }
@@ -39,7 +43,7 @@ trait LoggerBehaviorCompletion
     /**
      * メッセージ生成メソッドの設定
      *
-     * @param \Elastic\ActivityLogger\Model\Behavior\callable $handler
+     * @param callable $handler メッセージ生成メソッド
      * @return callable
      */
     public function logMessageBuilder(callable $handler = null)
@@ -50,9 +54,17 @@ trait LoggerBehaviorCompletion
     /**
      * カスタムログの記述
      *
-     * @param string $level
-     * @param string $message
-     * @param array $context
+     * @param string $level log level
+     * @param string $message log message
+     * @param array $context context data
+     * [
+     *   'object' => Entity,
+     *   'issuer' => Entity,
+     *   'scope' => Entity[],
+     *   'action' => string,
+     *   'data' => array,
+     * ]
+     * @return ActivityLog[]|array
      */
     public function activityLog($level, $message, array $context = [])
     {

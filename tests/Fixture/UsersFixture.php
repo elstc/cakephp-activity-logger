@@ -10,19 +10,18 @@ use Cake\TestSuite\Fixture\TestFixture;
  */
 class UsersFixture extends TestFixture
 {
-
     /**
      * fields property
      *
      * @var array
      */
     public $fields = [
-        'id'           => ['type' => 'integer'],
-        'username'     => ['type' => 'string', 'null' => true],
-        'password'     => ['type' => 'string', 'null' => true],
-        'created'      => ['type' => 'timestamp', 'null' => true],
-        'updated'      => ['type' => 'timestamp', 'null' => true],
-        '_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['id']]]
+        'id' => ['type' => 'integer'],
+        'username' => ['type' => 'string', 'null' => true],
+        'password' => ['type' => 'string', 'null' => true],
+        'created' => ['type' => 'timestamp', 'null' => true],
+        'updated' => ['type' => 'timestamp', 'null' => true],
+        '_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['id']]],
     ];
 
     /**
