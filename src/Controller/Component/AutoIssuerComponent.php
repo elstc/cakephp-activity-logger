@@ -50,7 +50,7 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
         parent::__construct($registry, $config);
 
         $this->tableLocator = TableRegistry::locator();
-        $this->setInitializedTables($this->getConfig('initializedTables'));
+        $this->setInitializedTables($this->config('initializedTables'));
     }
 
     public function implementedEvents()
