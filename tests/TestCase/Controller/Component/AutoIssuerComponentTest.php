@@ -15,9 +15,9 @@ class AutoIssuerComponentTest extends TestCase
     /**
      * Test subject
      *
-     * @var \Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent
+     * @var AutoIssuerComponent
      */
-    public $AutoIssuer;
+    private $AutoIssuer;
 
     /**
      * setUp method
