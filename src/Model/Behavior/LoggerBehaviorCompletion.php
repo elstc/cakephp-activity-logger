@@ -14,6 +14,8 @@ use Elastic\ActivityLogger\Model\Entity\ActivityLog;
 
 /**
  * LoggerBehaviorのメソッド補完
+ *
+ * @deprecated since 1.2.0, use @mixin annotation
  */
 // @codingStandardsIgnoreStart
 trait LoggerBehaviorCompletion// @codingStandardsIgnoreEnd

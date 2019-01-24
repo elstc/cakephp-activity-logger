@@ -64,16 +64,6 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * @return array
-     */
-    public function implementedMethods()
-    {
-        return parent::implementedMethods() + [
-                'activityLog' => 'log',
-            ];
-    }
-
-    /**
      * Table.initializeの後に実行
      *
      * @param Event $event the event
@@ -137,18 +127,23 @@ class LoggerBehavior extends Behavior
     }
 
     /**
+     * ログスコープの取得
+     *
+     * @return array
+     */
+    public function getLogScope()
+    {
+        return $this->getConfig('scope');
+    }
+
+    /**
      * ログスコープの設定
      *
      * @param mixed $args if $args === false リセット
-     * @return Table
+     * @return void
      */
-    public function logScope($args = null)
+    public function setLogScope($args)
     {
-        if ($args === null) {
-            // getter
-            return $this->getConfig('scope');
-        }
-
         if ($args === false) {
             // reset
             $this->setConfig('scope', $this->getConfig('originalScope'), false);
@@ -168,8 +163,52 @@ class LoggerBehavior extends Behavior
             }
             $this->setConfig('scope', $scope);
         }
+    }
+
+    /**
+     * ログスコープの設定
+     *
+     * @param mixed $args if $args === false リセット
+     * @return Table|array
+     * @deprecated 1.2.0 use setLogScope()/getLogScope() instead.
+     */
+    public function logScope($args = null)
+    {
+        if ($args === null) {
+            // getter
+            return $this->getLogScope();
+        }
+
+        $this->setLogScope($args);
 
         return $this->_table;
+    }
+
+    /**
+     * ログ発行者の取得
+     *
+     * @return array
+     */
+    public function getLogIssuer()
+    {
+        return $this->getConfig('issuer');
+    }
+
+    /**
+     * ログ発行者の設定
+     *
+     * @param Entity $issuer the issuer
+     * @return void
+     */
+    public function setLogIssuer(Entity $issuer)
+    {
+        $this->setConfig('issuer', $issuer);
+
+        // scopeに含む場合、併せてscopeにセット
+        list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
+        if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
+            $this->setLogScope($issuer);
+        }
     }
 
     /**
@@ -177,6 +216,7 @@ class LoggerBehavior extends Behavior
      *
      * @param Entity $issuer the issuer
      * @return Table
+     * @deprecated 1.2.0 use setLogIssuer()/getLogIssuer() instead.
      */
     public function logIssuer(Entity $issuer = null)
     {
@@ -190,10 +230,31 @@ class LoggerBehavior extends Behavior
         // scopeに含む場合、併せてscopeにセット
         list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
         if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
-            $this->logScope($issuer);
+            $this->setLogScope($issuer);
         }
 
         return $this->_table;
+    }
+
+    /**
+     * メッセージ生成メソッドの取得
+     *
+     * @return callable|null
+     */
+    public function getLogMessageBuilder()
+    {
+        return $this->getConfig('messageBuilder');
+    }
+
+    /**
+     * メッセージ生成メソッドの設定
+     *
+     * @param callable $handler the message build method
+     * @return void
+     */
+    public function setLogMessageBuilder(callable $handler = null)
+    {
+        $this->setConfig('messageBuilder', $handler);
     }
 
     /**
@@ -201,6 +262,7 @@ class LoggerBehavior extends Behavior
      *
      * @param callable $handler the message build method
      * @return callable
+     * @deprecated 1.2.0 use setLogMessageBuilder()/getLogMessageBuilder() instead.
      */
     public function logMessageBuilder(callable $handler = null)
     {
@@ -227,7 +289,7 @@ class LoggerBehavior extends Behavior
      * ]
      * @return ActivityLog[]|array
      */
-    public function log($level, $message, array $context = [])
+    public function activityLog($level, $message, array $context = [])
     {
         $entity = !empty($context['object']) ? $context['object'] : null;
         $issuer = !empty($context['issuer']) ? $context['issuer'] : $this->getConfig('issuer');
@@ -251,6 +313,27 @@ class LoggerBehavior extends Behavior
         $this->saveLogs($logs);
 
         return $logs;
+    }
+
+    /**
+     * カスタムログの記述
+     *
+     * @param string $level log level
+     * @param string $message log message
+     * @param array $context context data
+     * [
+     *   'object' => Entity,
+     *   'issuer' => Entity,
+     *   'scope' => Entity[],
+     *   'action' => string,
+     *   'data' => array,
+     * ]
+     * @return ActivityLog[]|array
+     * @deprecated 1.2.0 use activityLog() instead.
+     */
+    public function log($level, $message, array $context = [])
+    {
+        return $this->activityLog($level, $message, $context);
     }
 
     /**
