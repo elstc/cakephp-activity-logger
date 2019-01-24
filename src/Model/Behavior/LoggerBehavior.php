@@ -64,16 +64,6 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * @return array
-     */
-    public function implementedMethods()
-    {
-        return parent::implementedMethods() + [
-                'activityLog' => 'log',
-            ];
-    }
-
-    /**
      * Table.initializeの後に実行
      *
      * @param Event $event the event
@@ -81,21 +71,21 @@ class LoggerBehavior extends Behavior
      */
     public function afterInit(Event $event)
     {
-        $scope = $this->config('scope');
+        $scope = $this->getConfig('scope');
 
         if (empty($scope)) {
-            $scope = [$this->_table->registryAlias()];
+            $scope = [$this->_table->getRegistryAlias()];
         }
 
-        if ($this->config('systemScope')) {
-            $namespace = $this->config('systemScope') === true
+        if ($this->getConfig('systemScope')) {
+            $namespace = $this->getConfig('systemScope') === true
                 ? Configure::read('App.namespace')
-                : $this->config('systemScope');
+                : $this->getConfig('systemScope');
             $scope['\\' . $namespace] = true;
         }
 
-        $this->config('scope', $scope, false);
-        $this->config('originalScope', $scope);
+        $this->setConfig('scope', $scope, false);
+        $this->setConfig('originalScope', $scope);
     }
 
     /**
@@ -106,13 +96,13 @@ class LoggerBehavior extends Behavior
      */
     public function afterSave(Event $event, Entity $entity, ArrayObject $options)
     {
-        $entity->source($this->_table->registryAlias()); // for entity of belongsToMany intermediate table
-        $log = $this->buildLog($entity, $this->config('issuer'));
+        $entity->setSource($this->_table->getRegistryAlias()); // for entity of belongsToMany intermediate table
+        $log = $this->buildLog($entity, $this->getConfig('issuer'));
         $log->action = $entity->isNew() ? ActivityLog::ACTION_CREATE : ActivityLog::ACTION_UPDATE;
         $log->data = $this->getDirtyData($entity);
-        $log->message = $this->buildMessage($log, $entity, $this->config('issuer'));
+        $log->message = $this->buildMessage($log, $entity, $this->getConfig('issuer'));
 
-        $logs = $this->duplicateLogByScope($this->config('scope'), $log, $entity);
+        $logs = $this->duplicateLogByScope($this->getConfig('scope'), $log, $entity);
 
         $this->saveLogs($logs);
     }
@@ -125,33 +115,38 @@ class LoggerBehavior extends Behavior
      */
     public function afterDelete(Event $event, Entity $entity, ArrayObject $options)
     {
-        $entity->source($this->_table->registryAlias()); // for entity of belongsToMany intermediate table
-        $log = $this->buildLog($entity, $this->config('issuer'));
+        $entity->setSource($this->_table->getRegistryAlias()); // for entity of belongsToMany intermediate table
+        $log = $this->buildLog($entity, $this->getConfig('issuer'));
         $log->action = ActivityLog::ACTION_DELETE;
         $log->data = $this->getData($entity);
-        $log->message = $this->buildMessage($log, $entity, $this->config('issuer'));
+        $log->message = $this->buildMessage($log, $entity, $this->getConfig('issuer'));
 
-        $logs = $this->duplicateLogByScope($this->config('scope'), $log, $entity);
+        $logs = $this->duplicateLogByScope($this->getConfig('scope'), $log, $entity);
 
         $this->saveLogs($logs);
+    }
+
+    /**
+     * ログスコープの取得
+     *
+     * @return array
+     */
+    public function getLogScope()
+    {
+        return $this->getConfig('scope');
     }
 
     /**
      * ログスコープの設定
      *
      * @param mixed $args if $args === false リセット
-     * @return Table
+     * @return void
      */
-    public function logScope($args = null)
+    public function setLogScope($args)
     {
-        if ($args === null) {
-            // getter
-            return $this->config('scope');
-        }
-
         if ($args === false) {
             // reset
-            $this->config('scope', $this->config('originalScope'), false);
+            $this->setConfig('scope', $this->getConfig('originalScope'), false);
         } else {
             // setter
             if (!is_array($args)) {
@@ -166,10 +161,54 @@ class LoggerBehavior extends Behavior
                     $scope[$key] = $val;
                 }
             }
-            $this->config('scope', $scope);
+            $this->setConfig('scope', $scope);
+        }
+    }
+
+    /**
+     * ログスコープの設定
+     *
+     * @param mixed $args if $args === false リセット
+     * @return Table|array
+     * @deprecated 1.2.0 use setLogScope()/getLogScope() instead.
+     */
+    public function logScope($args = null)
+    {
+        if ($args === null) {
+            // getter
+            return $this->getLogScope();
         }
 
+        $this->setLogScope($args);
+
         return $this->_table;
+    }
+
+    /**
+     * ログ発行者の取得
+     *
+     * @return array
+     */
+    public function getLogIssuer()
+    {
+        return $this->getConfig('issuer');
+    }
+
+    /**
+     * ログ発行者の設定
+     *
+     * @param Entity $issuer the issuer
+     * @return void
+     */
+    public function setLogIssuer(Entity $issuer)
+    {
+        $this->setConfig('issuer', $issuer);
+
+        // scopeに含む場合、併せてscopeにセット
+        list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
+        if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
+            $this->setLogScope($issuer);
+        }
     }
 
     /**
@@ -177,23 +216,45 @@ class LoggerBehavior extends Behavior
      *
      * @param Entity $issuer the issuer
      * @return Table
+     * @deprecated 1.2.0 use setLogIssuer()/getLogIssuer() instead.
      */
     public function logIssuer(Entity $issuer = null)
     {
         if ($issuer === null) {
             // getter
-            return $this->config('issuer');
+            return $this->getConfig('issuer');
         }
         // setter
-        $this->config('issuer', $issuer);
+        $this->setConfig('issuer', $issuer);
 
         // scopeに含む場合、併せてscopeにセット
-        list($issuerModel, $issuerId) = $this->buildObjectParameter($this->config('issuer'));
-        if (array_key_exists($issuerModel, $this->config('scope'))) {
-            $this->logScope($issuer);
+        list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
+        if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
+            $this->setLogScope($issuer);
         }
 
         return $this->_table;
+    }
+
+    /**
+     * メッセージ生成メソッドの取得
+     *
+     * @return callable|null
+     */
+    public function getLogMessageBuilder()
+    {
+        return $this->getConfig('messageBuilder');
+    }
+
+    /**
+     * メッセージ生成メソッドの設定
+     *
+     * @param callable $handler the message build method
+     * @return void
+     */
+    public function setLogMessageBuilder(callable $handler = null)
+    {
+        $this->setConfig('messageBuilder', $handler);
     }
 
     /**
@@ -201,15 +262,16 @@ class LoggerBehavior extends Behavior
      *
      * @param callable $handler the message build method
      * @return callable
+     * @deprecated 1.2.0 use setLogMessageBuilder()/getLogMessageBuilder() instead.
      */
     public function logMessageBuilder(callable $handler = null)
     {
         if ($handler === null) {
             // getter
-            return $this->config('messageBuilder');
+            return $this->getConfig('messageBuilder');
         }
         // setter
-        $this->config('messageBuilder', $handler);
+        $this->setConfig('messageBuilder', $handler);
     }
 
     /**
@@ -227,11 +289,11 @@ class LoggerBehavior extends Behavior
      * ]
      * @return ActivityLog[]|array
      */
-    public function log($level, $message, array $context = [])
+    public function activityLog($level, $message, array $context = [])
     {
         $entity = !empty($context['object']) ? $context['object'] : null;
-        $issuer = !empty($context['issuer']) ? $context['issuer'] : $this->config('issuer');
-        $scope = !empty($context['scope']) ? $this->__configScope($context['scope']) : $this->config('scope');
+        $issuer = !empty($context['issuer']) ? $context['issuer'] : $this->getConfig('issuer');
+        $scope = !empty($context['scope']) ? $this->__configScope($context['scope']) : $this->getConfig('scope');
 
         $log = $this->buildLog($entity, $issuer);
         $log->action = isset($context['action']) ? $context['action'] : ActivityLog::ACTION_RUNTIME;
@@ -242,7 +304,7 @@ class LoggerBehavior extends Behavior
         $log->message = $this->buildMessage($log, $entity, $issuer);
 
         // issuerをscopeに含む場合、併せてscopeにセット
-        if (!empty($log->issuer_id) && array_key_exists($log->issuer_model, $this->config('scope'))) {
+        if (!empty($log->issuer_id) && array_key_exists($log->issuer_model, $this->getConfig('scope'))) {
             $scope[$log->issuer_model] = $log->issuer_id;
         }
 
@@ -251,6 +313,27 @@ class LoggerBehavior extends Behavior
         $this->saveLogs($logs);
 
         return $logs;
+    }
+
+    /**
+     * カスタムログの記述
+     *
+     * @param string $level log level
+     * @param string $message log message
+     * @param array $context context data
+     * [
+     *   'object' => Entity,
+     *   'issuer' => Entity,
+     *   'scope' => Entity[],
+     *   'action' => string,
+     *   'data' => array,
+     * ]
+     * @return ActivityLog[]|array
+     * @deprecated 1.2.0 use activityLog() instead.
+     */
+    public function log($level, $message, array $context = [])
+    {
+        return $this->activityLog($level, $message, $context);
     }
 
     /**
@@ -267,7 +350,7 @@ class LoggerBehavior extends Behavior
         $logTable = $this->getLogTable();
         $logQuery = $logTable->find();
 
-        $where = [$logTable->aliasField('scope_model') => $this->_table->registryAlias()];
+        $where = [$logTable->aliasField('scope_model') => $this->_table->getRegistryAlias()];
 
         if (isset($options['scope']) && $options['scope'] instanceof Entity) {
             list($scopeModel, $scopeId) = $this->buildObjectParameter($options['scope']);
@@ -324,12 +407,12 @@ class LoggerBehavior extends Behavior
      */
     private function buildMessage($log, $entity = null, $issuer = null)
     {
-        if (!is_callable($this->config('messageBuilder'))) {
+        if (!is_callable($this->getConfig('messageBuilder'))) {
             return $log->message;
         }
         $context = ['object' => $entity, 'issuer' => $issuer];
 
-        return call_user_func($this->config('messageBuilder'), $log, $context);
+        return call_user_func($this->getConfig('messageBuilder'), $log, $context);
     }
 
     /**
@@ -346,7 +429,7 @@ class LoggerBehavior extends Behavior
 
         if (!empty($entity)) {
             // フィールド値から自動マッピング
-            foreach ($this->config('scopeMap') as $field => $scopeModel) {
+            foreach ($this->getConfig('scopeMap') as $field => $scopeModel) {
                 if (!empty($entity->get($field)) && array_key_exists($scopeModel, $scope)) {
                     $scope[$scopeModel] = $entity->get($field);
                 }
@@ -354,7 +437,7 @@ class LoggerBehavior extends Behavior
         }
 
         foreach ($scope as $scopeModel => $scopeId) {
-            if (!empty($entity) && $scopeModel === $this->_table->registryAlias()) {
+            if (!empty($entity) && $scopeModel === $this->_table->getRegistryAlias()) {
                 // モデル自身に対する更新の場合は、entityのidをセットする
                 $scopeId = $this->getLogTable()->getScopeId($this->_table, $entity);
             }
@@ -392,7 +475,7 @@ class LoggerBehavior extends Behavior
     private function getLogTable()
     {
         return TableRegistry::get('ActivityLog', [
-            'className' => $this->config('logModel'),
+            'className' => $this->getConfig('logModel'),
         ]);
     }
 
@@ -463,9 +546,9 @@ class LoggerBehavior extends Behavior
             } elseif (is_string($arg)) {
                 $new[$arg] = null;
             } elseif ($arg instanceof Entity) {
-                $table = TableRegistry::get($arg->source());
+                $table = TableRegistry::get($arg->getSource());
                 $scopeId = $this->getLogTable()->getScopeId($table, $arg);
-                $new[$table->registryAlias()] = $scopeId;
+                $new[$table->getRegistryAlias()] = $scopeId;
             }
         }
 

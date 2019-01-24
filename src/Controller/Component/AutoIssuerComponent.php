@@ -6,7 +6,6 @@ use Cake\Controller\Component;
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Component\AuthComponent;
 use Cake\Event\Event;
-use Cake\Event\EventListenerInterface;
 use Cake\Event\EventManager;
 use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorInterface;
@@ -17,7 +16,7 @@ use Cake\Utility\Hash;
 /**
  * AutoIssuer component
  */
-class AutoIssuerComponent extends Component implements EventListenerInterface
+class AutoIssuerComponent extends Component
 {
     /**
      * Default configuration.
@@ -57,8 +56,13 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     {
         parent::__construct($registry, $config);
 
-        $this->tableLocator = TableRegistry::locator();
-        $this->setInitializedTables($this->config('initializedTables'));
+        if (method_exists(TableRegistry::class, 'getTableLocator')) {
+            $this->tableLocator = TableRegistry::getTableLocator();
+        } else {
+            $this->tableLocator = TableRegistry::locator();
+        }
+
+        $this->setInitializedTables($this->getConfig('initializedTables'));
     }
 
     /**
@@ -137,10 +141,10 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      */
     public function onInitializeModel(Event $event)
     {
-        $table = $event->subject();
+        $table = $event->getSubject();
         /* @var $table Table */
-        if (!array_key_exists($table->registryAlias(), $this->tables)) {
-            $this->tables[$table->registryAlias()] = $table;
+        if (!array_key_exists($table->getRegistryAlias(), $this->tables)) {
+            $this->tables[$table->getRegistryAlias()] = $table;
         }
 
         // ログインユーザーが取得できていればセットする
@@ -188,7 +192,7 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
     private function getIssuerFromUserArray($user)
     {
         $table = $this->getUserModel();
-        $userId = Hash::get((array)$user, $table->primaryKey());
+        $userId = Hash::get((array)$user, $table->getPrimaryKey());
         if ($userId) {
             return $table->get($userId);
         }
@@ -203,6 +207,6 @@ class AutoIssuerComponent extends Component implements EventListenerInterface
      */
     private function getUserModel()
     {
-        return TableRegistry::get($this->config('userModel'));
+        return TableRegistry::get($this->getConfig('userModel'));
     }
 }

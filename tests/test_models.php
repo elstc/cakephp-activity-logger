@@ -55,20 +55,26 @@ namespace Elastic\ActivityLogger\Model\Entity {
 
 namespace Elastic\ActivityLogger\Model\Table {
 
+    use Cake\ORM\Association\BelongsTo;// @codingStandardsIgnoreLine
+    use Cake\ORM\Association\HasMany;// @codingStandardsIgnoreLine
     use Cake\ORM\Table;// @codingStandardsIgnoreLine
+    use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;// @codingStandardsIgnoreLine
+    use Elastic\ActivityLogger\Model\Entity\Article;// @codingStandardsIgnoreLine
+    use Elastic\ActivityLogger\Model\Entity\Author;// @codingStandardsIgnoreLine
+    use Elastic\ActivityLogger\Model\Entity\Comment;// @codingStandardsIgnoreLine
+    use Elastic\ActivityLogger\Model\Entity\User;// @codingStandardsIgnoreLine
 
     /**
-     * @param \Cake\ORM\Association\HasMany $Articles
+     * @param ArticlesTable|HasMany $Articles
+     * @mixin LoggerBehavior
      */
     class AuthorsTable extends Table
     {
-        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
-
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\Author');
+            $this->setEntityClass(Author::class);
             $this->hasMany('Articles', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\ArticlesTable',
+                'className' => ArticlesTable::class,
             ]);
 
             $this->addBehavior('Elastic/ActivityLogger.Logger');
@@ -76,17 +82,16 @@ namespace Elastic\ActivityLogger\Model\Table {
     }
 
     /**
-     * @param \Cake\ORM\Association\HasMany $Comments
+     * @param CommentsTable|HasMany $Comments
+     * @mixin LoggerBehavior
      */
     class UsersTable extends Table
     {
-        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
-
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\User');
+            $this->setEntityClass(User::class);
             $this->hasMany('Comments', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\CommentsTable',
+                'className' => CommentsTable::class,
             ]);
 
             $this->addBehavior('Elastic/ActivityLogger.Logger');
@@ -94,21 +99,20 @@ namespace Elastic\ActivityLogger\Model\Table {
     }
 
     /**
-     * @param \Cake\ORM\Association\BelongsTo $Authors
-     * @param \Cake\ORM\Association\HasMany $Comments
+     * @param AuthorsTable|BelongsTo $Authors
+     * @param CommentsTable|HasMany $Comments
+     * @mixin LoggerBehavior
      */
     class ArticlesTable extends Table
     {
-        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
-
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\Article');
+            $this->setEntityClass(Article::class);
             $this->belongsTo('Author', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\AuthorsTable',
+                'className' => AuthorsTable::class,
             ]);
             $this->hasMany('Comments', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\CommentsTable',
+                'className' => CommentsTable::class,
             ]);
 
             $this->addBehavior('Elastic/ActivityLogger.Logger', [
@@ -121,21 +125,20 @@ namespace Elastic\ActivityLogger\Model\Table {
     }
 
     /**
-     * @param \Cake\ORM\Association\BelongsTo $Articles
-     * @param \Cake\ORM\Association\BelongsTo $Users
+     * @param ArticlesTable|BelongsTo $Articles
+     * @param UsersTable|BelongsTo $Users
+     * @mixin LoggerBehavior
      */
     class CommentsTable extends Table
     {
-        use \Elastic\ActivityLogger\Model\Behavior\LoggerBehaviorCompletion;
-
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\Comment');
+            $this->setEntityClass(Comment::class);
             $this->belongsTo('Article', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\ArticlesTable',
+                'className' => ArticlesTable::class,
             ]);
             $this->belongsTo('User', [
-                'className' => '\Elastic\ActivityLogger\Model\Table\UsersTable',
+                'className' => UsersTable::class,
             ]);
 
             $this->addBehavior('Elastic/ActivityLogger.Logger', [

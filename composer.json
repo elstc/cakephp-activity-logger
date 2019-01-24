@@ -4,12 +4,14 @@
     "type": "cakephp-plugin",
     "license": ["MIT"],
     "require": {
-        "php": ">=5.4.16",
-        "cakephp/cakephp": "~3.1",
+        "php": ">=5.6",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "cakephp/cakephp": "^3.4",
         "psr/log": "^1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^4.8|^5.7|^6.0"
+        "phpunit/phpunit": "^5.7|^6.0"
     },
     "autoload": {
         "psr-4": {
