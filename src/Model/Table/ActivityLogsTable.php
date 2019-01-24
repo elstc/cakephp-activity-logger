@@ -29,7 +29,7 @@ class ActivityLogsTable extends Table
 
         $this->setTable('activity_logs');
         $this->setDisplayField('id');
-        $this->getPrimaryKey('id');
+        $this->setPrimaryKey('id');
     }
 
     /**
@@ -41,7 +41,11 @@ class ActivityLogsTable extends Table
     protected function _initializeSchema(TableSchema $table)
     {
         $schema = parent::_initializeSchema($table);
-        $schema->columnType('data', 'json_data');
+        if (method_exists($schema, 'setColumnType')) {
+            $schema->setColumnType('data', 'json_data');
+        } else {
+            $schema->columnType('data', 'json_data');
+        }
 
         return $schema;
     }

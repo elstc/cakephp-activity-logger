@@ -66,7 +66,7 @@ namespace Elastic\ActivityLogger\Model\Table {
 
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\Author');
+            $this->setEntityClass('\Elastic\ActivityLogger\Model\Entity\Author');
             $this->hasMany('Articles', [
                 'className' => '\Elastic\ActivityLogger\Model\Table\ArticlesTable',
             ]);
@@ -84,7 +84,7 @@ namespace Elastic\ActivityLogger\Model\Table {
 
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\User');
+            $this->setEntityClass('\Elastic\ActivityLogger\Model\Entity\User');
             $this->hasMany('Comments', [
                 'className' => '\Elastic\ActivityLogger\Model\Table\CommentsTable',
             ]);
@@ -103,7 +103,7 @@ namespace Elastic\ActivityLogger\Model\Table {
 
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\Article');
+            $this->setEntityClass('\Elastic\ActivityLogger\Model\Entity\Article');
             $this->belongsTo('Author', [
                 'className' => '\Elastic\ActivityLogger\Model\Table\AuthorsTable',
             ]);
@@ -130,7 +130,7 @@ namespace Elastic\ActivityLogger\Model\Table {
 
         public function initialize(array $config)
         {
-            $this->entityClass('\Elastic\ActivityLogger\Model\Entity\Comment');
+            $this->setEntityClass('\Elastic\ActivityLogger\Model\Entity\Comment');
             $this->belongsTo('Article', [
                 'className' => '\Elastic\ActivityLogger\Model\Table\ArticlesTable',
             ]);

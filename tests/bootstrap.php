@@ -40,4 +40,6 @@ if (class_exists('\Cake\I18n\FrozenTime')) {
 
 Plugin::load('Elastic/ActivityLogger', ['path' => dirname(dirname(__FILE__)) . DS, 'bootstrap' => true]);
 
+error_reporting(E_ALL);
+
 require $here . '/test_models.php';

@@ -56,7 +56,12 @@ class AutoIssuerComponent extends Component
     {
         parent::__construct($registry, $config);
 
-        $this->tableLocator = TableRegistry::locator();
+        if (method_exists(TableRegistry::class, 'getTableLocator')) {
+            $this->tableLocator = TableRegistry::getTableLocator();
+        } else {
+            $this->tableLocator = TableRegistry::locator();
+        }
+
         $this->setInitializedTables($this->getConfig('initializedTables'));
     }
 

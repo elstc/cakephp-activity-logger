@@ -251,7 +251,7 @@ class LoggerBehaviorTest extends TestCase
             'user_id' => $user->id,
             'comment' => 'Awesome!',
         ]);
-        $this->Comments->behaviors()->get('Logger')->config('scopeMap', [
+        $this->Comments->behaviors()->get('Logger')->setConfig('scopeMap', [
             'article_id' => 'Elastic/ActivityLogger.Articles',
             'user_id' => 'Elastic/ActivityLogger.Users',
         ]);

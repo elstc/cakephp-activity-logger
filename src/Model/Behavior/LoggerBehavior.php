@@ -87,7 +87,7 @@ class LoggerBehavior extends Behavior
             $scope = [$this->_table->getRegistryAlias()];
         }
 
-        if ($this->config('systemScope')) {
+        if ($this->getConfig('systemScope')) {
             $namespace = $this->getConfig('systemScope') === true
                 ? Configure::read('App.namespace')
                 : $this->getConfig('systemScope');
