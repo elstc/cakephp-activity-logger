@@ -26,15 +26,6 @@ matrix:
   fast_finish: true
 
   include:
-  - php: 5.6
-    env: DEFAULT=1 CAKE_VERSION='3.1.*' DB=mysql db_dsn='mysql://root@0.0.0.0/cakephp_test'
-
-  - php: 5.6
-    env: DEFAULT=1 CAKE_VERSION='3.2.*' DB=mysql db_dsn='mysql://root@0.0.0.0/cakephp_test'
-
-  - php: 5.6
-    env: DEFAULT=1 CAKE_VERSION='3.3.*' DB=mysql db_dsn='mysql://root@0.0.0.0/cakephp_test'
-
   - php: 7.2
     env: PHPCS=1 DEFAULT=0
 
