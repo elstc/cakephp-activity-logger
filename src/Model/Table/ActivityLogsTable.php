@@ -3,7 +3,7 @@
 namespace Elastic\ActivityLogger\Model\Table;
 
 use Cake\Core\Configure;
-use Cake\Database\Schema\Table as Schema;
+use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Entity;
 use Cake\ORM\Query;
@@ -27,18 +27,18 @@ class ActivityLogsTable extends Table
     {
         parent::initialize($config);
 
-        $this->table('activity_logs');
-        $this->displayField('id');
-        $this->primaryKey('id');
+        $this->setTable('activity_logs');
+        $this->setDisplayField('id');
+        $this->getPrimaryKey('id');
     }
 
     /**
      * Add data type
      *
-     * @param Schema $table the table
-     * @return Schema
+     * @param TableSchema $table the table
+     * @return TableSchema
      */
-    protected function _initializeSchema(Schema $table)
+    protected function _initializeSchema(TableSchema $table)
     {
         $schema = parent::_initializeSchema($table);
         $schema->columnType('data', 'json_data');
@@ -179,8 +179,8 @@ class ActivityLogsTable extends Table
         $objectModel = null;
         $objectId = null;
         if ($object && $object instanceof Entity) {
-            $objectTable = TableRegistry::get($object->source());
-            $objectModel = $objectTable->registryAlias();
+            $objectTable = TableRegistry::get($object->getSource());
+            $objectModel = $objectTable->getRegistryAlias();
             $objectId = $this->getScopeId($objectTable, $object);
         }
 
@@ -198,7 +198,7 @@ class ActivityLogsTable extends Table
      */
     public function getScopeId(Table $table, EntityInterface $entity)
     {
-        $primaryKey = $table->primaryKey();
+        $primaryKey = $table->getPrimaryKey();
         if (is_string($primaryKey)) {
             return $entity->get($primaryKey);
         }
