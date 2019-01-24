@@ -100,7 +100,7 @@ $this->Articles->delete($artice);
 ### Activity Logging with Issuer
 
 ```(php)
-$this->Articles->logIssuer($author); // Set issuer
+$this->Articles->setLogIssuer($author); // Set issuer
 
 $artice = $this-Articles->newEnity([ /* ... */ ]);
 $this->Articles->save($artice);
@@ -134,7 +134,7 @@ class CommentsTable extends Table
 ```
 
 ```(php)
-$this->Comments->logScope([$user, $article]); // Set scope
+$this->Comments->setLogScope([$user, $article]); // Set scope
 
 $comment = $this-Comments->newEnity([ /* ... */ ]);
 $this->Comments->save($comment);
