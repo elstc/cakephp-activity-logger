@@ -3,8 +3,8 @@
 namespace Elastic\ActivityLogger\Controller\Component;
 
 use Cake\Controller\Component;
-use Cake\Controller\Component\AuthComponent;
 use Cake\Controller\ComponentRegistry;
+use Cake\Controller\Component\AuthComponent;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\ORM\Entity;
