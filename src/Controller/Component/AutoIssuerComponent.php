@@ -207,6 +207,6 @@ class AutoIssuerComponent extends Component
      */
     private function getUserModel()
     {
-        return TableRegistry::get($this->getConfig('userModel'));
+        return $this->tableLocator->get($this->getConfig('userModel'));
     }
 }

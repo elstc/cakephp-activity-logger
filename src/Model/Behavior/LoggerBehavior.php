@@ -474,7 +474,13 @@ class LoggerBehavior extends Behavior
      */
     private function getLogTable()
     {
-        return TableRegistry::get('ActivityLog', [
+        if (method_exists(TableRegistry::class, 'getTableLocator')) {
+            $tableLocator = TableRegistry::getTableLocator();
+        } else {
+            $tableLocator = TableRegistry::locator();
+        }
+
+        return $tableLocator->get('ActivityLog', [
             'className' => $this->getConfig('logModel'),
         ]);
     }
