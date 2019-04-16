@@ -36,7 +36,7 @@ $this->addPlugin('Elastic/ActivityLogger');
 (CakePHP <= 3.5.x) Load the plugin by adding the following statement in your project's `config/bootstrap.php` file:
 
 ```
-Plugin::load('Elastic/ActivityLogger');
+Plugin::load('Elastic/ActivityLogger', ['bootstrap' => true]);
 ```
 
 ### Create activity_logs table
