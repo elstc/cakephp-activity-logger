@@ -15,6 +15,13 @@ use Cake\Utility\Hash;
 
 /**
  * AutoIssuer component
+ *
+ * Get authentication information from AuthComponent and set it to each Table as Issuer.
+ *
+ * config:
+ *  'userModel': Set AuthComponent's 'userModel'.
+ *  'initializedTables': If there is load to the Table class before the execution of `Controller.startup` event,
+ *                       please describe here.
  */
 class AutoIssuerComponent extends Component
 {
