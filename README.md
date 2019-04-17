@@ -52,7 +52,7 @@ bin/cake migrations migrate -p Elastic/ActivityLogger
 
 ### Attach to Table
 
-```(php)
+```php
 class ArticlesTable extends Table
 {
 
@@ -74,7 +74,7 @@ class ArticlesTable extends Table
 ### Activity Logging Basis
 
 #### logging on create
-```(php)
+```php
 $artice = $this-Articles->newEnity([ /* ... */ ]);
 $this->Articles->save($artice);
 // saved log
@@ -82,7 +82,7 @@ $this->Articles->save($artice);
 ```
 
 #### logging on update
-```(php)
+```php
 $artice = $this-Articles->patchEnity(artice, [ /* ... */ ]);
 $this->Articles->save($artice);
 // saved log
@@ -90,7 +90,7 @@ $this->Articles->save($artice);
 ```
 
 #### logging on delete
-```(php)
+```php
 $artice = $this-Articles->get($id);
 $this->Articles->delete($artice);
 // saved log
@@ -99,7 +99,7 @@ $this->Articles->delete($artice);
 
 ### Activity Logging with Issuer
 
-```(php)
+```php
 $this->Articles->setLogIssuer($author); // Set issuer
 
 $artice = $this-Articles->newEnity([ /* ... */ ]);
@@ -111,9 +111,57 @@ $this->Articles->save($artice);
 // [action='create', scope_model='Auhtors', scope_id=$author->id, ...]
 ```
 
+#### AutoIssuerComponent
+
+If you using `AuthComponent`, the `AutoIssuerComponent` will help set issuer to Tables.
+
+```php
+// In AppController
+class AppController extends Controller
+{
+    public function initialize()
+    {
+        // ...
+        $this->loadComonent('Elastic/ActivityLogger.AutoIssuer', [
+            'userModel' => 'Users',
+        ]);
+        // ...
+    }
+}
+```
+
+If there is load to any Table class before the execution of `Controller.startup` event,
+please describe `initializedTables` option.
+
+eg: 
+
+```php
+// In AppController
+class AppController extends Controller
+{
+    public function initialize()
+    {
+        $this->loadModel('Articles');
+        $this->loadModel('Awesome.Favorites');
+
+        // ...
+
+        $this->loadComonent('Elastic/ActivityLogger.AutoIssuer', [
+            'userModel' => 'Users',
+            'initializedTables' => [
+                'Articles',
+                'Awesome.Favorites',
+            ],
+        ]);
+
+        // ...
+    }
+}
+```
+
 ### Activity Logging with Scope
 
-```(php)
+```php
 class CommentsTable extends Table
 {
 
@@ -133,7 +181,7 @@ class CommentsTable extends Table
 
 ```
 
-```(php)
+```php
 $this->Comments->setLogScope([$user, $article]); // Set scope
 
 $comment = $this-Comments->newEnity([ /* ... */ ]);
@@ -147,7 +195,7 @@ $this->Comments->save($comment);
 
 ### Save Custom Log
 
-```(php)
+```php
 $this->Articles->activityLog(\Psr\Log\LogLevel::NOTICE, 'Custom Messages', [
   'action' => 'custom',
   'object' => $artice,
@@ -159,6 +207,6 @@ $this->Articles->activityLog(\Psr\Log\LogLevel::NOTICE, 'Custom Messages', [
 
 ### Find Activity Logs
 
-```(php)
+```php
 $logs = $this->Articles->find('activity', ['scope' => $article]);
 ```
