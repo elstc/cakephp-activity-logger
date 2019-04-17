@@ -15,6 +15,13 @@ use Cake\Utility\Hash;
 
 /**
  * AutoIssuer component
+ *
+ * Get authentication information from AuthComponent and set it to each Table as Issuer.
+ *
+ * config:
+ *  'userModel': Set AuthComponent's 'userModel'.
+ *  'initializedTables': If there is load to the Table class before the execution of `Controller.startup` event,
+ *                       please describe here.
  */
 class AutoIssuerComponent extends Component
 {
@@ -81,24 +88,24 @@ class AutoIssuerComponent extends Component
      * on Controller.startup
      *
      * @param Event $event the Event
-     * @return null
+     * @return void
      */
     public function startup(Event $event)
     {
-        if (!$this->_registry->get('Auth')) {
-            // Authコンポーネントが無効
-            return null;
-        }
-
         $auth = $this->_registry->get('Auth');
         /* @var $auth AuthComponent */
+
+        if (!$auth) {
+            // Authコンポーネントが無効
+            return;
+        }
 
         // ログインユーザーを取得
         $this->issuer = $this->getIssuerFromUserArray($auth->user());
 
         if (!$this->issuer) {
             // 未ログイン
-            return null;
+            return;
         }
 
         // 登録されているモデルにセットする
@@ -112,18 +119,17 @@ class AutoIssuerComponent extends Component
      * - ログインユーザーを登録されているモデルにセットする
      *
      * @param Event $event the Event
-     * @return null
+     * @return void
      */
     public function onAfterIdentify(Event $event)
     {
-        list($user, $auth) = $event->data();
+        list($user) = $event->getData();
         /* @var $user array */
-        /* @var $auth \Cake\Auth\BaseAuthenticate */
         $this->issuer = $this->getIssuerFromUserArray($user);
 
         if (!$this->issuer) {
             // 未ログイン
-            return null;
+            return;
         }
 
         // 登録されているモデルにセットする
@@ -207,6 +213,6 @@ class AutoIssuerComponent extends Component
      */
     private function getUserModel()
     {
-        return TableRegistry::get($this->getConfig('userModel'));
+        return $this->tableLocator->get($this->getConfig('userModel'));
     }
 }
