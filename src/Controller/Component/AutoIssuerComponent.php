@@ -81,24 +81,24 @@ class AutoIssuerComponent extends Component
      * on Controller.startup
      *
      * @param Event $event the Event
-     * @return null
+     * @return void
      */
     public function startup(Event $event)
     {
-        if (!$this->_registry->get('Auth')) {
-            // Authコンポーネントが無効
-            return null;
-        }
-
         $auth = $this->_registry->get('Auth');
         /* @var $auth AuthComponent */
+
+        if (!$auth) {
+            // Authコンポーネントが無効
+            return;
+        }
 
         // ログインユーザーを取得
         $this->issuer = $this->getIssuerFromUserArray($auth->user());
 
         if (!$this->issuer) {
             // 未ログイン
-            return null;
+            return;
         }
 
         // 登録されているモデルにセットする
@@ -112,18 +112,17 @@ class AutoIssuerComponent extends Component
      * - ログインユーザーを登録されているモデルにセットする
      *
      * @param Event $event the Event
-     * @return null
+     * @return void
      */
     public function onAfterIdentify(Event $event)
     {
-        list($user, $auth) = $event->data();
+        list($user) = $event->getData();
         /* @var $user array */
-        /* @var $auth \Cake\Auth\BaseAuthenticate */
         $this->issuer = $this->getIssuerFromUserArray($user);
 
         if (!$this->issuer) {
             // 未ログイン
-            return null;
+            return;
         }
 
         // 登録されているモデルにセットする
