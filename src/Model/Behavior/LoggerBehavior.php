@@ -499,6 +499,12 @@ class LoggerBehavior extends Behavior
             return null;
         }
 
+        if (method_exists($entity, 'getVisible')) {
+            // CakePHP >= 3.8
+            return $entity->extract($entity->getVisible(), true);
+        }
+
+        // CakePHP < 3.8
         return $entity->extract($entity->visibleProperties(), true);
     }
 
@@ -516,6 +522,12 @@ class LoggerBehavior extends Behavior
             return null;
         }
 
+        if (method_exists($entity, 'getVisible')) {
+            // CakePHP >= 3.8
+            return $entity->extract($entity->getVisible());
+        }
+
+        // CakePHP < 3.8
         return $entity->extract($entity->visibleProperties());
     }
 
