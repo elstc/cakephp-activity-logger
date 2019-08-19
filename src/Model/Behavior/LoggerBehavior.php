@@ -1,4 +1,6 @@
 <?php
+/** @noinspection PhpUnusedLocalVariableInspection */
+/** @noinspection PhpUnusedParameterInspection */
 
 namespace Elastic\ActivityLogger\Model\Behavior;
 
@@ -261,7 +263,7 @@ class LoggerBehavior extends Behavior
      * メッセージ生成メソッドの設定
      *
      * @param callable $handler the message build method
-     * @return callable
+     * @return callable|void
      * @deprecated 1.2.0 use setLogMessageBuilder()/getLogMessageBuilder() instead.
      */
     public function logMessageBuilder(callable $handler = null)
@@ -293,7 +295,7 @@ class LoggerBehavior extends Behavior
     {
         $entity = !empty($context['object']) ? $context['object'] : null;
         $issuer = !empty($context['issuer']) ? $context['issuer'] : $this->getConfig('issuer');
-        $scope = !empty($context['scope']) ? $this->__configScope($context['scope']) : $this->getConfig('scope');
+        $scope = !empty($context['scope']) ? $this->buildScope($context['scope']) : $this->getConfig('scope');
 
         $log = $this->buildLog($entity, $issuer);
         $log->action = isset($context['action']) ? $context['action'] : ActivityLog::ACTION_RUNTIME;
@@ -301,6 +303,7 @@ class LoggerBehavior extends Behavior
 
         $log->level = $level;
         $log->message = $message;
+        /** @noinspection SuspiciousAssignmentsInspection */
         $log->message = $this->buildMessage($log, $entity, $issuer);
 
         // issuerをscopeに含む場合、併せてscopeにセット
@@ -388,7 +391,7 @@ class LoggerBehavior extends Behavior
     /**
      * エンティティからパラメータの取得
      *
-     * @param Entity $object the object
+     * @param EntityInterface $object the object
      * @return array [object_model, object_id]
      * @see \Elastic\ActivityLogger\Model\Table\ActivityLogsTable::buildObjectParameter()
      */
@@ -427,17 +430,17 @@ class LoggerBehavior extends Behavior
     {
         $logs = [];
 
-        if (!empty($entity)) {
+        if ($entity !== null) {
             // フィールド値から自動マッピング
             foreach ($this->getConfig('scopeMap') as $field => $scopeModel) {
-                if (!empty($entity->get($field)) && array_key_exists($scopeModel, $scope)) {
+                if (array_key_exists($scopeModel, $scope) && !empty($entity->get($field))) {
                     $scope[$scopeModel] = $entity->get($field);
                 }
             }
         }
 
         foreach ($scope as $scopeModel => $scopeId) {
-            if (!empty($entity) && $scopeModel === $this->_table->getRegistryAlias()) {
+            if ($entity !== null && $scopeModel === $this->_table->getRegistryAlias()) {
                 // モデル自身に対する更新の場合は、entityのidをセットする
                 $scopeId = $this->getLogTable()->getScopeId($this->_table, $entity);
             }
@@ -495,7 +498,7 @@ class LoggerBehavior extends Behavior
      */
     private function getDirtyData(EntityInterface $entity = null)
     {
-        if (empty($entity)) {
+        if ($entity === null) {
             return null;
         }
 
@@ -518,7 +521,7 @@ class LoggerBehavior extends Behavior
      */
     private function getData(EntityInterface $entity = null)
     {
-        if (empty($entity)) {
+        if ($entity === null) {
             return null;
         }
 
@@ -540,7 +543,7 @@ class LoggerBehavior extends Behavior
     protected function _configWrite($key, $value, $merge = false)
     {
         if ($key === 'scope') {
-            $value = $this->__configScope($value);
+            $value = $this->buildScope($value);
         }
         parent::_configWrite($key, $value, $merge);
     }
@@ -551,7 +554,7 @@ class LoggerBehavior extends Behavior
      * @param mixed $value the scope
      * @return array
      */
-    private function __configScope($value)
+    private function buildScope($value)
     {
         if (!is_array($value)) {
             $value = [$value];
