@@ -55,7 +55,7 @@ install:
 
 before_script:
   - if [ $DB = 'mysql' ]; then mysql -u root -e 'CREATE DATABASE cakephp_test CHARACTER SET utf8 COLLATE utf8_general_ci;'; fi
-  - if [ $PHPCS = '1' ]; then composer require cakephp/cakephp-codesniffer:dev-master; fi
+  - if [ $PHPCS = '1' ]; then composer require cakephp/cakephp-codesniffer:^3.0; fi
 
 script:
   - if [ $DEFAULT = '1' ]; then vendor/bin/phpunit --stderr; fi
