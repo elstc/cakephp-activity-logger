@@ -40,7 +40,7 @@ class LoggerBehaviorTest extends TestCase
     {
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
-        $this->Logger = new LoggerBehavior(new \Cake\ORM\Table);
+        $this->Logger = new LoggerBehavior(new \Cake\ORM\Table());
         $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
         $this->Articles = TableRegistry::get('Elastic/ActivityLogger.Articles');
         $this->Comments = TableRegistry::get('Elastic/ActivityLogger.Comments');

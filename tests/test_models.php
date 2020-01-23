@@ -1,8 +1,10 @@
 <?php
-
+/**
+ * @codingStandardsIgnoreFile
+ */
 namespace Elastic\ActivityLogger\Model\Entity {
 
-    use Cake\ORM\Entity;// @codingStandardsIgnoreLine
+    use Cake\ORM\Entity;
 
     /**
      * @property integer $id
@@ -55,14 +57,14 @@ namespace Elastic\ActivityLogger\Model\Entity {
 
 namespace Elastic\ActivityLogger\Model\Table {
 
-    use Cake\ORM\Association\BelongsTo;// @codingStandardsIgnoreLine
-    use Cake\ORM\Association\HasMany;// @codingStandardsIgnoreLine
-    use Cake\ORM\Table;// @codingStandardsIgnoreLine
-    use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;// @codingStandardsIgnoreLine
-    use Elastic\ActivityLogger\Model\Entity\Article;// @codingStandardsIgnoreLine
-    use Elastic\ActivityLogger\Model\Entity\Author;// @codingStandardsIgnoreLine
-    use Elastic\ActivityLogger\Model\Entity\Comment;// @codingStandardsIgnoreLine
-    use Elastic\ActivityLogger\Model\Entity\User;// @codingStandardsIgnoreLine
+    use Cake\ORM\Association\BelongsTo;
+    use Cake\ORM\Association\HasMany;
+    use Cake\ORM\Table;
+    use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
+    use Elastic\ActivityLogger\Model\Entity\Article;
+    use Elastic\ActivityLogger\Model\Entity\Author;
+    use Elastic\ActivityLogger\Model\Entity\Comment;
+    use Elastic\ActivityLogger\Model\Entity\User;
 
     /**
      * @param ArticlesTable|HasMany $Articles
