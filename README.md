@@ -122,7 +122,7 @@ class AppController extends Controller
     public function initialize()
     {
         // ...
-        $this->loadComonent('Elastic/ActivityLogger.AutoIssuer', [
+        $this->loadComponent('Elastic/ActivityLogger.AutoIssuer', [
             'userModel' => 'Users',
         ]);
         // ...
@@ -146,7 +146,7 @@ class AppController extends Controller
 
         // ...
 
-        $this->loadComonent('Elastic/ActivityLogger.AutoIssuer', [
+        $this->loadComponent('Elastic/ActivityLogger.AutoIssuer', [
             'userModel' => 'Users',
             'initializedTables' => [
                 'Articles',
