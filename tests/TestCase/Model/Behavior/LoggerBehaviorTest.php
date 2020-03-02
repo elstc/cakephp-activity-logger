@@ -541,6 +541,44 @@ class LoggerBehaviorTest extends TestCase
         $this->assertSame('nate が記事 #4「バージョン1.0 stableリリース」を削除しました。', $logs[3]->message);
     }
 
+    public function testSetLogMessage()
+    {
+        $author = $this->Authors->get(1);
+        $this->Articles->setLogIssuer($author);
+
+        // 記事を新規作成
+        $this->Articles->setLogMessage('custom message');
+        $article = $this->Articles->newEntity([
+            'title' => 'バージョン1.0リリース',
+            'body' => '新しいバージョン 1.0 をリリースしました。',
+            'author' => $author,
+        ]);
+        $this->Articles->save($article);
+
+        // 記事を更新
+        $article->title = 'バージョン1.0 stableリリース';
+        $this->Articles->save($article);
+
+        // 記事を更新
+        $this->Articles->setLogMessage('persist custom message', true);
+        $article->title = 'バージョン1.0.0 stableリリース';
+        $this->Articles->save($article);
+        // 記事を削除
+        $this->Articles->delete($article);
+
+        $logs = $this->ActivityLogs->find()
+            ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
+            ->order(['id' => 'asc'])
+            ->all()
+            ->toArray();
+
+        $this->assertCount(4, $logs);
+        $this->assertSame('custom message', $logs[0]->message);
+        $this->assertSame('', $logs[1]->message, 'setLogMessageでセットしたメッセージは何らかのログ記録が発生したらリセットされる');
+        $this->assertSame('persist custom message', $logs[2]->message);
+        $this->assertSame('persist custom message', $logs[3]->message, 'persistフラグをセットしたメッセージは維持される');
+    }
+
     public function testFindActivity()
     {
         $author = $this->Authors->get(1);

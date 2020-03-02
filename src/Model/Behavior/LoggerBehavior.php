@@ -277,6 +277,24 @@ class LoggerBehavior extends Behavior
     }
 
     /**
+     * メッセージのセット
+     *
+     * @param string $message the message
+     * @param bool $persist if true, keeps the message.
+     * @return void
+     */
+    public function setLogMessage($message, $persist = false)
+    {
+        $this->setLogMessageBuilder(function () use ($message, $persist) {
+            if (!$persist) {
+                $this->setLogMessageBuilder(null);
+            }
+
+            return $message;
+        });
+    }
+
+    /**
      * カスタムログの記述
      *
      * @param string $level log level
