@@ -193,6 +193,63 @@ $this->Comments->save($comment);
 // [action='create', scope_model='Articles', scope_id=$author->id, ...]
 ```
 
+### Activity Logging with message
+
+use `setLogMessageBuilder` method. You can generate any message for each action in the log.
+
+```php
+class ArticlesTable extends Table
+{
+
+    public function initialize(array $config)
+    {
+        // ...
+
+        $this->addBehavior('Elastic/ActivityLogger.Logger', [
+            'scope' => [
+                'Articles',
+                'Authors',
+            ],
+        ]);
+        // ADD THIS
+        $this->setLogMessageBuilder(static function (ActivityLog $log, array $context) {
+            if ($log->message !== null) {
+               return $log->message;
+            }
+            
+            $message = '';
+            $object = $context['object'] ?: null;
+            $issuer = $context['issuer'] ?: null;
+            switch ($log->action) {
+                case ActivityLog::ACTION_CREATE:
+                    $message = sprintf('%3$s created #%1$s: "%2$s"', $object->id, $object->title, $issuer->username);
+                    break;
+                case ActivityLog::ACTION_UPDATE:
+                    $message = sprintf('%3$s updated #%1$s: "%2$s"', $object->id, $object->title, $issuer->username);
+                    break;
+                case ActivityLog::ACTION_DELETE:
+                    $message = sprintf('%3$s deleted #%1$s: "%2$s"', $object->id, $object->title, $issuer->username);
+                    break;
+                default:
+                    break;
+            }
+            
+            return $message;
+        });
+    }
+}
+
+```
+
+Or use `setLogMessage` before save|delete action. You can set a log message. 
+
+```php
+$this->Articles->setLogMessage('Custom Message');
+$this->Articles->save($entity);
+// saved log
+// [action='update', 'message' => 'Custom Messages', ...]
+```
+
 ### Save Custom Log
 
 ```php
