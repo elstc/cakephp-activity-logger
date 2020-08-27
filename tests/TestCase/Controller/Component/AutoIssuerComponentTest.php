@@ -59,8 +59,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function setUp()
-    {
+    public function setUp() : void {
         parent::setUp();
 
         $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
@@ -84,7 +83,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function tearDown()
+    public function tearDown() : void
     {
         unset($this->AutoIssuer, $this->registry, $this->Authors, $this->Articles, $this->Comments);
 

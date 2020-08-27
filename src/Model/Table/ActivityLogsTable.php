@@ -4,6 +4,7 @@ namespace Elastic\ActivityLogger\Model\Table;
 
 use Cake\Core\Configure;
 use Cake\Database\Schema\TableSchema;
+use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Entity;
 use Cake\ORM\Query;
@@ -23,7 +24,7 @@ class ActivityLogsTable extends Table
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config)
+    public function initialize(array $config) : void
     {
         parent::initialize($config);
 
@@ -38,13 +39,13 @@ class ActivityLogsTable extends Table
      * @param TableSchema $table the table
      * @return TableSchema
      */
-    protected function _initializeSchema(TableSchema $table)
+    protected function _initializeSchema(TableSchemaInterface $table) : TableSchemaInterface
     {
         $schema = parent::_initializeSchema($table);
         if (method_exists($schema, 'setColumnType')) {
             $schema->setColumnType('data', 'json_data');
         } else {
-            $schema->columnType('data', 'json_data');
+            $schema->setColumnType('data', 'json_data');
         }
 
         return $schema;
@@ -56,36 +57,36 @@ class ActivityLogsTable extends Table
      * @param \Cake\Validation\Validator $validator Validator instance.
      * @return \Cake\Validation\Validator
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator) : Validator
     {
         $validator
-            ->allowEmpty('id', 'create');
+            ->allowEmptyString('id', 'create');
 
         $validator
-            ->allowEmpty('created_at');
+            ->allowEmptyDateTime('created_at');
 
         $validator
             ->requirePresence('scope_model', 'create')
-            ->notEmpty('scope_model');
+            ->notEmptyString('scope_model');
 
         $validator
-            ->allowEmpty('issuer_model');
+            ->allowEmptyString('issuer_model');
 
         $validator
-            ->allowEmpty('object_model');
+            ->allowEmptyString('object_model');
 
         $validator
             ->requirePresence('level', 'create')
-            ->notEmpty('level');
+            ->allowEmptyString('level');
 
         $validator
-            ->allowEmpty('action');
+            ->allowEmptyString('action');
 
         $validator
-            ->allowEmpty('message');
+            ->allowEmptyString('message');
 
         $validator
-            ->allowEmpty('data');
+            ->allowEmptyString('data');
 
         return $validator;
     }
@@ -97,7 +98,7 @@ class ActivityLogsTable extends Table
      * @param RulesChecker $rules The rules object to be modified.
      * @return RulesChecker
      */
-    public function buildRules(RulesChecker $rules)
+    public function buildRules(RulesChecker $rules): RulesChecker
     {
         return $rules;
     }

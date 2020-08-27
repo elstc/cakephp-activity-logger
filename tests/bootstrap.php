@@ -2,6 +2,9 @@
 
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
+use Cake\Database\Type;
+use Elastic\ActivityLogger\Database\Type\JsonDataType;
+use PharIo\Manifest\Application;
 
 /**
  * Test suite bootstrap for RememberMe.
@@ -38,7 +41,13 @@ if (class_exists('\Cake\I18n\FrozenTime')) {
 }
 \Cake\I18n\Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 
-Plugin::load('Elastic/ActivityLogger', ['path' => dirname(dirname(__FILE__)) . DS, 'bootstrap' => true]);
+
+Type::map('json_data', JsonDataType::class);
+
+
+#Cake\Core\Plugin::getCollection()->add()
+
+#Application::addPlugin()('Elastic/ActivityLogger', ['path' => dirname(dirname(__FILE__)) . DS, 'bootstrap' => true]);
 
 error_reporting(E_ALL);
 

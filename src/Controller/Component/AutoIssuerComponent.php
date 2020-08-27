@@ -12,6 +12,7 @@ use Cake\ORM\Locator\LocatorInterface;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
+use RuntimeException;
 
 /**
  * AutoIssuer component
@@ -75,7 +76,7 @@ class AutoIssuerComponent extends Component
     /**
      * @return array
      */
-    public function implementedEvents()
+    public function implementedEvents(): array
     {
         EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
 
@@ -92,9 +93,13 @@ class AutoIssuerComponent extends Component
      */
     public function startup(Event $event)
     {
-        $auth = $this->_registry->get('Auth');
-        /* @var $auth AuthComponent */
-
+        try {
+            # ToDo: this will possibly break the whole functionality when not using AuthComponent
+            $auth = $this->_registry->get('Auth');
+            /* @var $auth AuthComponent */
+        } catch (RuntimeException $e) {
+            $auth = null;
+        }
         if (!$auth) {
             // Authコンポーネントが無効
             return;

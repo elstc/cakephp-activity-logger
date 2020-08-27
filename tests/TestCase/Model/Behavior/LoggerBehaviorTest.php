@@ -36,7 +36,7 @@ class LoggerBehaviorTest extends TestCase
 
     public $dropTables = true;
 
-    public function setUp()
+    public function setUp() : void
     {
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
@@ -48,7 +48,7 @@ class LoggerBehaviorTest extends TestCase
         $this->ActivityLogs = TableRegistry::get('Elastic/ActivityLogger.ActivityLogs');
     }
 
-    public function tearDown()
+    public function tearDown() : void
     {
         unset($this->Logger);
         unset($this->Authors);
@@ -103,7 +103,7 @@ class LoggerBehaviorTest extends TestCase
         $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
 
         // edit
-        $author->isNew(false);
+        $author->setNew(false);
         $author->clean();
         $author = $this->Authors->patchEntity($author, ['username' => 'anonymous']);
         $this->Authors->save($author);
