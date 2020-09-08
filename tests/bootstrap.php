@@ -1,7 +1,6 @@
 <?php
 
 use Cake\Core\Configure;
-use Cake\Core\Plugin;
 
 /**
  * Test suite bootstrap for RememberMe.
@@ -37,8 +36,6 @@ if (class_exists('\Cake\I18n\FrozenTime')) {
     \Cake\I18n\FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 }
 \Cake\I18n\Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
-
-Plugin::load('Elastic/ActivityLogger', ['path' => dirname(dirname(__FILE__)) . DS]);
 
 error_reporting(E_ALL);
 

@@ -1,1 +1,4 @@
 config/Migrations/*.lock
+vendor
+.idea
+composer.lock

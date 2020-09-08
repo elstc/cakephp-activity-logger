@@ -72,7 +72,7 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class AuthorsTable extends Table
     {
-        public function initialize(array $config)
+        public function initialize(array $config) : void
         {
             $this->setEntityClass(Author::class);
             $this->hasMany('Articles', [
@@ -89,7 +89,7 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class UsersTable extends Table
     {
-        public function initialize(array $config)
+        public function initialize(array $config) : void
         {
             $this->setEntityClass(User::class);
             $this->hasMany('Comments', [
@@ -107,7 +107,7 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class ArticlesTable extends Table
     {
-        public function initialize(array $config)
+        public function initialize(array $config) : void
         {
             $this->setEntityClass(Article::class);
             $this->belongsTo('Author', [
@@ -133,7 +133,7 @@ namespace Elastic\ActivityLogger\Model\Table {
      */
     class CommentsTable extends Table
     {
-        public function initialize(array $config)
+        public function initialize(array $config) : void
         {
             $this->setEntityClass(Comment::class);
             $this->belongsTo('Article', [
