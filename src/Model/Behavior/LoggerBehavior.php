@@ -172,25 +172,6 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログスコープの設定
-     *
-     * @param mixed $args if $args === false リセット
-     * @return Table|array
-     * @deprecated 1.2.0 use setLogScope()/getLogScope() instead.
-     */
-    public function logScope($args = null)
-    {
-        if ($args === null) {
-            // getter
-            return $this->getLogScope();
-        }
-
-        $this->setLogScope($args);
-
-        return $this->_table;
-    }
-
-    /**
      * ログ発行者の取得
      *
      * @return array
@@ -208,31 +189,6 @@ class LoggerBehavior extends Behavior
      */
     public function setLogIssuer(Entity $issuer)
     {
-        $this->setConfig('issuer', $issuer);
-
-        // scopeに含む場合、併せてscopeにセット
-        list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
-        if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
-            $this->setLogScope($issuer);
-        }
-
-        return $this->_table;
-    }
-
-    /**
-     * ログ発行者の設定
-     *
-     * @param Entity $issuer the issuer
-     * @return Table
-     * @deprecated 1.2.0 use setLogIssuer()/getLogIssuer() instead.
-     */
-    public function logIssuer(Entity $issuer = null)
-    {
-        if ($issuer === null) {
-            // getter
-            return $this->getConfig('issuer');
-        }
-        // setter
         $this->setConfig('issuer', $issuer);
 
         // scopeに含む場合、併せてscopeにセット
@@ -265,23 +221,6 @@ class LoggerBehavior extends Behavior
         $this->setConfig('messageBuilder', $handler);
 
         return $this->_table;
-    }
-
-    /**
-     * メッセージ生成メソッドの設定
-     *
-     * @param callable $handler the message build method
-     * @return callable|void
-     * @deprecated 1.2.0 use setLogMessageBuilder()/getLogMessageBuilder() instead.
-     */
-    public function logMessageBuilder(callable $handler = null)
-    {
-        if ($handler === null) {
-            // getter
-            return $this->getConfig('messageBuilder');
-        }
-        // setter
-        $this->setConfig('messageBuilder', $handler);
     }
 
     /**
@@ -344,27 +283,6 @@ class LoggerBehavior extends Behavior
         $this->saveLogs($logs);
 
         return $logs;
-    }
-
-    /**
-     * カスタムログの記述
-     *
-     * @param string $level log level
-     * @param string $message log message
-     * @param array $context context data
-     * [
-     *   'object' => Entity,
-     *   'issuer' => Entity,
-     *   'scope' => Entity[],
-     *   'action' => string,
-     *   'data' => array,
-     * ]
-     * @return ActivityLog[]|array
-     * @deprecated 1.2.0 use activityLog() instead.
-     */
-    public function log($level, $message, array $context = [])
-    {
-        return $this->activityLog($level, $message, $context);
     }
 
     /**
