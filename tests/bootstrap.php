@@ -38,7 +38,7 @@ if (class_exists('\Cake\I18n\FrozenTime')) {
 }
 \Cake\I18n\Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 
-Plugin::load('Elastic/ActivityLogger', ['path' => dirname(dirname(__FILE__)) . DS, 'bootstrap' => true]);
+Plugin::load('Elastic/ActivityLogger', ['path' => dirname(dirname(__FILE__)) . DS]);
 
 error_reporting(E_ALL);
 
