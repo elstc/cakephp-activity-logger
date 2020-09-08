@@ -8,7 +8,6 @@ use Psr\Log\LogLevel;
 
 /**
  * ActivityLogsFixture
- *
  */
 class ActivityLogsFixture extends TestFixture
 {

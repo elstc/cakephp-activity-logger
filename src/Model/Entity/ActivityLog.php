@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Model\Entity;
 
@@ -11,13 +12,13 @@ use Cake\ORM\Entity;
  * @property \Cake\I18n\Time $created_at
  * @property string $scope_model
  * @property string $scope_id
- * @property-read Entity $scope
+ * @property-read \Cake\ORM\Entity $scope
  * @property string $issuer_model
  * @property string $issuer_id
- * @property-read Entity $issuer
+ * @property-read \Cake\ORM\Entity $issuer
  * @property string $object_model
  * @property string $object_id
- * @property-read Entity $object
+ * @property-read \Cake\ORM\Entity $object
  * @property string $level
  * @property string $action
  * @property string $message
@@ -25,10 +26,10 @@ use Cake\ORM\Entity;
  */
 class ActivityLog extends Entity
 {
-    const ACTION_CREATE = 'create';
-    const ACTION_UPDATE = 'update';
-    const ACTION_DELETE = 'delete';
-    const ACTION_RUNTIME = 'runtime';
+    public const ACTION_CREATE = 'create';
+    public const ACTION_UPDATE = 'update';
+    public const ACTION_DELETE = 'delete';
+    public const ACTION_RUNTIME = 'runtime';
 
     /**
      * Fields that can be mass assigned using newEntity() or patchEntity().

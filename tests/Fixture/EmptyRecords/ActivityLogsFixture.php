@@ -6,7 +6,6 @@ use Cake\TestSuite\Fixture\TestFixture;
 
 /**
  * ActivityLogsFixture
- *
  */
 class ActivityLogsFixture extends TestFixture
 {

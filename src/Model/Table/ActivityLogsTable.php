@@ -1,9 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Model\Table;
 
 use Cake\Core\Configure;
-use Cake\Database\Schema\TableSchema;
 use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Entity;
@@ -24,7 +24,7 @@ class ActivityLogsTable extends Table
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config) : void
+    public function initialize(array $config): void
     {
         parent::initialize($config);
 
@@ -36,10 +36,10 @@ class ActivityLogsTable extends Table
     /**
      * Add data type
      *
-     * @param TableSchema $table the table
-     * @return TableSchema
+     * @param \Cake\Database\Schema\TableSchema $table the table
+     * @return \Cake\Database\Schema\TableSchema
      */
-    protected function _initializeSchema(TableSchemaInterface $table) : TableSchemaInterface
+    protected function _initializeSchema(TableSchemaInterface $table): TableSchemaInterface
     {
         $schema = parent::_initializeSchema($table);
         $schema->setColumnType('data', 'json');
@@ -53,7 +53,7 @@ class ActivityLogsTable extends Table
      * @param \Cake\Validation\Validator $validator Validator instance.
      * @return \Cake\Validation\Validator
      */
-    public function validationDefault(Validator $validator) : Validator
+    public function validationDefault(Validator $validator): Validator
     {
         $validator
             ->allowEmptyString('id', 'create');
@@ -91,8 +91,8 @@ class ActivityLogsTable extends Table
      * Returns a rules checker object that will be used for validating
      * application integrity.
      *
-     * @param RulesChecker $rules The rules object to be modified.
-     * @return RulesChecker
+     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
+     * @return \Cake\ORM\RulesChecker
      */
     public function buildRules(RulesChecker $rules): RulesChecker
     {
@@ -104,9 +104,9 @@ class ActivityLogsTable extends Table
      *
      * $table->find('scope', ['scope' => $entity])
      *
-     * @param Query $query the Query
+     * @param \Cake\ORM\Query $query the Query
      * @param array $options query options
-     * @return Query
+     * @return \Cake\ORM\Query
      */
     public function findScope(Query $query, array $options)
     {
@@ -116,7 +116,7 @@ class ActivityLogsTable extends Table
 
         $where = [];
         if ($options['scope'] instanceof Entity) {
-            list($scopeModel, $scopeId) = $this->buildObjectParameter($options['scope']);
+            [$scopeModel, $scopeId] = $this->buildObjectParameter($options['scope']);
             $where[$this->aliasField('scope_model')] = $scopeModel;
             $where[$this->aliasField('scope_id')] = $scopeId;
         } elseif (is_string($options['scope'])) {
@@ -132,9 +132,9 @@ class ActivityLogsTable extends Table
      *
      * $table->find('system')
      *
-     * @param Query $query the Query
+     * @param \Cake\ORM\Query $query the Query
      * @param array $options query options
-     * @return Query
+     * @return \Cake\ORM\Query
      */
     public function findSystem(Query $query, array $options)
     {
@@ -148,9 +148,9 @@ class ActivityLogsTable extends Table
      *
      * $table->find('issuer', ['issuer' => $entity])
      *
-     * @param Query $query the Query
+     * @param \Cake\ORM\Query $query the Query
      * @param array $options query options
-     * @return Query
+     * @return \Cake\ORM\Query
      */
     public function findIssuer(Query $query, array $options)
     {
@@ -160,7 +160,7 @@ class ActivityLogsTable extends Table
 
         $where = [];
         if ($options['issuer'] instanceof Entity) {
-            list($scopeModel, $scopeId) = $this->buildObjectParameter($options['issuer']);
+            [$scopeModel, $scopeId] = $this->buildObjectParameter($options['issuer']);
             $where[$this->aliasField('issuer_model')] = $scopeModel;
             $where[$this->aliasField('issuer_id')] = $scopeId;
         }
@@ -172,7 +172,7 @@ class ActivityLogsTable extends Table
     /**
      * エンティティからパラメータの取得
      *
-     * @param EntityInterface $object a entity
+     * @param \Cake\Datasource\EntityInterface $object a entity
      * @return array [object_model, object_id]
      */
     public function buildObjectParameter($object)
@@ -193,8 +193,8 @@ class ActivityLogsTable extends Table
      *
      * 複数プライマリキーの場合は連結して返す
      *
-     * @param Table $table target table
-     * @param EntityInterface $entity a entity
+     * @param \Cake\ORM\Table $table target table
+     * @param \Cake\Datasource\EntityInterface $entity a entity
      * @return string|int
      */
     public function getScopeId(Table $table, EntityInterface $entity)

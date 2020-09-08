@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /** @noinspection PhpUnusedLocalVariableInspection */
 /** @noinspection PhpUnusedParameterInspection */
 
@@ -12,10 +14,8 @@ use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
-use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
-use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
 use Psr\Log\LogLevel;
 
 /**
@@ -61,7 +61,7 @@ class LoggerBehavior extends Behavior
     /**
      * @return array
      */
-    public function implementedEvents() : array
+    public function implementedEvents(): array
     {
         return parent::implementedEvents() + [
                 'Model.initialize' => 'afterInit',
@@ -71,7 +71,7 @@ class LoggerBehavior extends Behavior
     /**
      * Table.initializeの後に実行
      *
-     * @param Event $event the event
+     * @param \Cake\Event\Event $event the event
      * @return void
      */
     public function afterInit(Event $event)
@@ -94,9 +94,9 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * @param Event $event the event
-     * @param EntityInterface $entity saving entity
-     * @param ArrayObject $options save options
+     * @param \Cake\Event\Event $event the event
+     * @param \Cake\Datasource\EntityInterface $entity saving entity
+     * @param \ArrayObject $options save options
      * @return void
      */
     public function afterSave(Event $event, EntityInterface $entity, ArrayObject $options)
@@ -112,9 +112,9 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * @param Event $event the event
-     * @param EntityInterface $entity deleted entity
-     * @param ArrayObject $options delete options
+     * @param \Cake\Event\Event $event the event
+     * @param \Cake\Datasource\EntityInterface $entity deleted entity
+     * @param \ArrayObject $options delete options
      * @return void
      */
     public function afterDelete(Event $event, EntityInterface $entity, ArrayObject $options)
@@ -144,7 +144,7 @@ class LoggerBehavior extends Behavior
      * ログスコープの設定
      *
      * @param mixed $args if $args === false リセット
-     * @return Table|self
+     * @return \Cake\ORM\Table|self
      */
     public function setLogScope($args)
     {
@@ -184,15 +184,15 @@ class LoggerBehavior extends Behavior
     /**
      * ログ発行者の設定
      *
-     * @param EntityInterface $issuer the issuer
-     * @return Table|self
+     * @param \Cake\Datasource\EntityInterface $issuer the issuer
+     * @return \Cake\ORM\Table|self
      */
     public function setLogIssuer(EntityInterface $issuer)
     {
         $this->setConfig('issuer', $issuer);
 
         // scopeに含む場合、併せてscopeにセット
-        list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
+        [$issuerModel, $issuerId] = $this->buildObjectParameter($this->getConfig('issuer'));
         if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
             $this->setLogScope($issuer);
         }
@@ -214,9 +214,9 @@ class LoggerBehavior extends Behavior
      * メッセージ生成メソッドの設定
      *
      * @param callable $handler the message build method
-     * @return Table|self
+     * @return \Cake\ORM\Table|self
      */
-    public function setLogMessageBuilder(callable $handler = null)
+    public function setLogMessageBuilder(?callable $handler = null)
     {
         $this->setConfig('messageBuilder', $handler);
 
@@ -228,7 +228,7 @@ class LoggerBehavior extends Behavior
      *
      * @param string $message the message
      * @param bool $persist if true, keeps the message.
-     * @return Table|self
+     * @return \Cake\ORM\Table|self
      */
     public function setLogMessage($message, $persist = false)
     {
@@ -256,7 +256,7 @@ class LoggerBehavior extends Behavior
      *   'action' => string,
      *   'data' => array,
      * ]
-     * @return ActivityLog[]|array
+     * @return \Elastic\ActivityLogger\Model\Entity\ActivityLog[]|array
      */
     public function activityLog($level, $message, array $context = [])
     {
@@ -265,8 +265,8 @@ class LoggerBehavior extends Behavior
         $scope = !empty($context['scope']) ? $this->buildScope($context['scope']) : $this->getConfig('scope');
 
         $log = $this->buildLog($entity, $issuer);
-        $log->action = isset($context['action']) ? $context['action'] : ActivityLog::ACTION_RUNTIME;
-        $log->data = isset($context['data']) ? $context['data'] : $this->getData($entity);
+        $log->action = $context['action'] ?? ActivityLog::ACTION_RUNTIME;
+        $log->data = $context['data'] ?? $this->getData($entity);
 
         $log->level = $level;
         $log->message = $message;
@@ -290,9 +290,9 @@ class LoggerBehavior extends Behavior
      *
      * $table->find('activity', ['scope' => $entity])
      *
-     * @param Query $query the query
+     * @param \Cake\ORM\Query $query the query
      * @param array $options find options
-     * @return Query
+     * @return \Cake\ORM\Query
      */
     public function findActivity(Query $query, array $options)
     {
@@ -302,7 +302,7 @@ class LoggerBehavior extends Behavior
         $where = [$logTable->aliasField('scope_model') => $this->_table->getRegistryAlias()];
 
         if (isset($options['scope']) && $options['scope'] instanceof Entity) {
-            list($scopeModel, $scopeId) = $this->buildObjectParameter($options['scope']);
+            [$scopeModel, $scopeId] = $this->buildObjectParameter($options['scope']);
             $where[$logTable->aliasField('scope_model')] = $scopeModel;
             $where[$logTable->aliasField('scope_id')] = $scopeId;
         }
@@ -315,21 +315,28 @@ class LoggerBehavior extends Behavior
     /**
      * ログを作成
      *
-     * @param EntityInterface $entity the entity
-     * @param EntityInterface $issuer the issuer
-     * @return ActivityLog|EntityInterface
+     * @param \Cake\Datasource\EntityInterface $entity the entity
+     * @param \Cake\Datasource\EntityInterface $issuer the issuer
+     * @return \Elastic\ActivityLogger\Model\Entity\ActivityLog|\Cake\Datasource\EntityInterface
      */
-    private function buildLog(EntityInterface $entity = null, EntityInterface $issuer = null)
+    private function buildLog(?EntityInterface $entity = null, ?EntityInterface $issuer = null)
     {
-        list($issuer_model, $issuer_id) = $this->buildObjectParameter($issuer);
-        list($object_model, $object_id) = $this->buildObjectParameter($entity);
+        [$issuer_model, $issuer_id] = $this->buildObjectParameter($issuer);
+        [$object_model, $object_id] = $this->buildObjectParameter($entity);
 
         $level = LogLevel::INFO;
         $message = '';
 
         $logTable = $this->getLogTable();
-        /* @var ActivityLogsTable $logTable */
-        $log = $logTable->newEntity(compact('issuer_model', 'issuer_id', 'object_model', 'object_id', 'level', 'message'));
+        /** @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
+        $log = $logTable->newEntity(compact(
+            'issuer_model',
+            'issuer_id',
+            'object_model',
+            'object_id',
+            'level',
+            'message'
+        ));
 
         return $log;
     }
@@ -337,7 +344,7 @@ class LoggerBehavior extends Behavior
     /**
      * エンティティからパラメータの取得
      *
-     * @param EntityInterface $object the object
+     * @param \Cake\Datasource\EntityInterface $object the object
      * @return array [object_model, object_id]
      * @see \Elastic\ActivityLogger\Model\Table\ActivityLogsTable::buildObjectParameter()
      */
@@ -349,9 +356,9 @@ class LoggerBehavior extends Behavior
     /**
      * メッセージの生成
      *
-     * @param ActivityLog $log log object
-     * @param EntityInterface $entity saved entity
-     * @param EntityInterface $issuer issuer
+     * @param \Elastic\ActivityLogger\Model\Entity\ActivityLog $log log object
+     * @param \Cake\Datasource\EntityInterface $entity saved entity
+     * @param \Cake\Datasource\EntityInterface $issuer issuer
      * @return string
      */
     private function buildMessage($log, $entity = null, $issuer = null)
@@ -368,11 +375,11 @@ class LoggerBehavior extends Behavior
      * ログデータをスコープに応じて複製
      *
      * @param array $scope target scope
-     * @param ActivityLog $log duplicate logs
-     * @param EntityInterface $entity the entity
-     * @return ActivityLog[]|array
+     * @param \Elastic\ActivityLogger\Model\Entity\ActivityLog $log duplicate logs
+     * @param \Cake\Datasource\EntityInterface $entity the entity
+     * @return \Elastic\ActivityLogger\Model\Entity\ActivityLog[]|array
      */
-    private function duplicateLogByScope(array $scope, ActivityLog $log, EntityInterface $entity = null)
+    private function duplicateLogByScope(array $scope, ActivityLog $log, ?EntityInterface $entity = null)
     {
         $logs = [];
 
@@ -404,22 +411,20 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     *
-     * @param ActivityLog[] $logs save logs
+     * @param \Elastic\ActivityLogger\Model\Entity\ActivityLog[] $logs save logs
      * @return void
      */
     private function saveLogs($logs)
     {
         $logTable = $this->getLogTable();
-        /* @var ActivityLogsTable $logTable */
+        /** @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $logTable */
         foreach ($logs as $log) {
             $logTable->save($log, ['atomic' => false]);
         }
     }
 
     /**
-     *
-     * @return ActivityLogsTable|Table
+     * @return \Elastic\ActivityLogger\Model\Table\ActivityLogsTable|\Cake\ORM\Table
      */
     private function getLogTable()
     {
@@ -433,10 +438,10 @@ class LoggerBehavior extends Behavior
      *
      * hiddenに設定されたものは除く
      *
-     * @param EntityInterface $entity the entity
+     * @param \Cake\Datasource\EntityInterface $entity the entity
      * @return array
      */
-    private function getDirtyData(EntityInterface $entity = null)
+    private function getDirtyData(?EntityInterface $entity = null)
     {
         if ($entity === null) {
             return null;
@@ -450,10 +455,10 @@ class LoggerBehavior extends Behavior
      *
      * hiddenに設定されたものは除く
      *
-     * @param EntityInterface $entity the entity
+     * @param \Cake\Datasource\EntityInterface $entity the entity
      * @return array
      */
-    private function getData(EntityInterface $entity = null)
+    private function getData(?EntityInterface $entity = null)
     {
         if ($entity === null) {
             return null;
@@ -468,7 +473,7 @@ class LoggerBehavior extends Behavior
      * @param bool $merge override
      * @return void
      */
-    protected function _configWrite($key, $value, $merge = false) : void
+    protected function _configWrite($key, $value, $merge = false): void
     {
         if ($key === 'scope') {
             $value = $this->buildScope($value);

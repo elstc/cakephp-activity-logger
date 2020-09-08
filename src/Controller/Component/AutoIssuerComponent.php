@@ -1,17 +1,14 @@
 <?php
+declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Controller\ComponentRegistry;
-use Cake\Controller\Component\AuthComponent;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
-use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
-use Cake\ORM\Locator\LocatorInterface;
-use Cake\ORM\Table;
 use Cake\Utility\Hash;
 use RuntimeException;
 
@@ -44,25 +41,24 @@ class AutoIssuerComponent extends Component
     /**
      * ログインユーザー
      *
-     * @var Entity
+     * @var \Cake\ORM\Entity
      */
     protected $issuer = null;
 
     /**
-     *
-     * @var Table[]
+     * @var \Cake\ORM\Table[]
      */
     protected $tables = [];
 
     /**
-     * @var LocatorInterface
+     * @var \Cake\ORM\Locator\LocatorInterface
      */
     protected $tableLocator;
 
     /**
      * AutoIssuerComponent constructor.
      *
-     * @param ComponentRegistry $registry the ComponentRegistry
+     * @param \Cake\Controller\ComponentRegistry $registry the ComponentRegistry
      * @param array $config the config option
      */
     public function __construct(ComponentRegistry $registry, array $config = [])
@@ -89,7 +85,7 @@ class AutoIssuerComponent extends Component
     /**
      * on Controller.startup
      *
-     * @param Event $event the Event
+     * @param \Cake\Event\Event $event the Event
      * @return void
      */
     public function startup(Event $event)
@@ -97,7 +93,7 @@ class AutoIssuerComponent extends Component
         try {
             # ToDo: this will possibly break the whole functionality when not using AuthComponent
             $auth = $this->_registry->get('Auth');
-            /* @var $auth AuthComponent */
+        /** @var \Elastic\ActivityLogger\Controller\Component\AuthComponent $auth */
         } catch (RuntimeException $e) {
             $auth = null;
         }
@@ -124,13 +120,13 @@ class AutoIssuerComponent extends Component
      * - ログインユーザーをセット
      * - ログインユーザーを登録されているモデルにセットする
      *
-     * @param Event $event the Event
+     * @param \Cake\Event\Event $event the Event
      * @return void
      */
     public function onAfterIdentify(Event $event)
     {
-        list($user) = $event->getData();
-        /* @var $user array */
+        [$user] = $event->getData();
+        /** @var array $user */
         $this->issuer = $this->getIssuerFromUserArray($user);
 
         if (!$this->issuer) {
@@ -148,13 +144,13 @@ class AutoIssuerComponent extends Component
      * - テーブルリストへの追加
      * - Issuerのセット
      *
-     * @param Event $event the event
+     * @param \Cake\Event\Event $event the event
      * @return void
      */
     public function onInitializeModel(Event $event)
     {
         $table = $event->getSubject();
-        /* @var $table Table */
+        /** @var \Elastic\ActivityLogger\Controller\Component\Table $table */
         if (!array_key_exists($table->getRegistryAlias(), $this->tables)) {
             $this->tables[$table->getRegistryAlias()] = $table;
         }
@@ -183,7 +179,7 @@ class AutoIssuerComponent extends Component
     /**
      * 登録されているモデルにログインユーザーをセットする
      *
-     * @param EntityInterface $issuer A issuer
+     * @param \Cake\Datasource\EntityInterface $issuer A issuer
      * @return void
      */
     private function setIssuerToAllModel(EntityInterface $issuer)
@@ -199,7 +195,7 @@ class AutoIssuerComponent extends Component
      * ユーザーエンティティの取得
      *
      * @param array $user a User entity
-     * @return EntityInterface|null
+     * @return \Cake\Datasource\EntityInterface|null
      */
     private function getIssuerFromUserArray($user)
     {
@@ -215,7 +211,7 @@ class AutoIssuerComponent extends Component
     /**
      * ユーザーテーブルの取得
      *
-     * @return Table
+     * @return \Cake\ORM\Table
      */
     private function getUserModel()
     {

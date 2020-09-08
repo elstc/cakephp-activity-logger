@@ -1,18 +1,16 @@
 <?php
+declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Test\TestCase\Controller\Component;
 
 use Cake\Auth\BasicAuthenticate;
-use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Component\AuthComponent;
+use Cake\Controller\ComponentRegistry;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent;
 use Elastic\ActivityLogger\Model\Entity\User;
-use Elastic\ActivityLogger\Model\Table\ArticlesTable;
-use Elastic\ActivityLogger\Model\Table\AuthorsTable;
-use Elastic\ActivityLogger\Model\Table\CommentsTable;
 
 /**
  * Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent Test Case
@@ -58,7 +56,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -83,7 +81,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function tearDown() : void
+    public function tearDown(): void
     {
         unset($this->AutoIssuer, $this->registry, $this->Authors, $this->Articles, $this->Comments);
 

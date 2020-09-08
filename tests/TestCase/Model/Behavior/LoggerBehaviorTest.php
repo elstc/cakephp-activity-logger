@@ -1,17 +1,12 @@
 <?php
+declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior;
 
 use Cake\Core\Configure;
-use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
-use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
-use Elastic\ActivityLogger\Model\Table\ArticlesTable;
-use Elastic\ActivityLogger\Model\Table\AuthorsTable;
-use Elastic\ActivityLogger\Model\Table\CommentsTable;
-use Elastic\ActivityLogger\Model\Table\UsersTable;
 use Psr\Log\LogLevel;
 
 /**
@@ -36,7 +31,7 @@ class LoggerBehaviorTest extends TestCase
 
     public $dropTables = true;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
@@ -48,7 +43,7 @@ class LoggerBehaviorTest extends TestCase
         $this->ActivityLogs = $this->getTableLocator()->get('Elastic/ActivityLogger.ActivityLogs');
     }
 
-    public function tearDown() : void
+    public function tearDown(): void
     {
         unset($this->Logger);
         unset($this->Authors);
@@ -91,7 +86,7 @@ class LoggerBehaviorTest extends TestCase
         $this->assertCount(2, $q->all(), 'Authorsスコープとシステムスコープでログは2つ作成される');
 
         $log = $q->first();
-        /* @var $log ActivityLog */
+        /** @var ActivityLog $log */
         $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
         $this->assertSame(ActivityLog::ACTION_CREATE, $log->action, '新規作成なのでcreate');
         $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
@@ -113,7 +108,7 @@ class LoggerBehaviorTest extends TestCase
         $this->assertCount(4, $q->all(), 'Authorsスコープとシステムスコープでログは2つ作成される');
 
         $log = $q->first();
-        /* @var $log ActivityLog */
+        /** @var ActivityLog $log */
         $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
         $this->assertSame(ActivityLog::ACTION_UPDATE, $log->action, '更新なのでUpdate');
         $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
@@ -133,7 +128,7 @@ class LoggerBehaviorTest extends TestCase
         $this->assertCount(2, $q->all());
 
         $log = $q->first();
-        /* @var $log ActivityLog */
+        /** @var ActivityLog $log */
         $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
         $this->assertSame(ActivityLog::ACTION_DELETE, $log->action, '削除なのでdelete');
         $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
@@ -153,7 +148,6 @@ class LoggerBehaviorTest extends TestCase
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
         ], $this->Authors->getLogScope(), 'ログのスコープが取得できる');
-        //
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
             'Elastic/ActivityLogger.Authors' => null,
@@ -167,7 +161,6 @@ class LoggerBehaviorTest extends TestCase
             'Elastic/ActivityLogger.Authors' => 1,
             '\MyApp' => true,
         ], $this->Authors->getLogScope(), 'ログのスコープが更新されている');
-        //
         $article = $this->Articles->get(2);
         $this->Articles->setLogScope([$article, $author]);
         $this->assertSame([
@@ -205,7 +198,6 @@ class LoggerBehaviorTest extends TestCase
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
         ], $this->Authors->getLogScope(), 'ログのスコープが取得できる');
-        //
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
             'Elastic/ActivityLogger.Authors' => null,
@@ -219,7 +211,6 @@ class LoggerBehaviorTest extends TestCase
             'Elastic/ActivityLogger.Authors' => 1,
             '\MyApp' => true,
         ], $this->Authors->getLogScope(), 'ログのスコープが更新されている');
-        //
         $article = $this->Articles->get(2);
         $this->Articles->setLogScope([$article, $author]);
         $this->assertSame([
@@ -261,15 +252,14 @@ class LoggerBehaviorTest extends TestCase
         $log = $this->ActivityLogs->find()
             ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
             ->order(['id' => 'desc'])->first();
-        /* @var $log ActivityLog */
+        /** @var ActivityLog $log */
         $this->assertEquals($author->id, $log->scope_id, 'スコープが指定されている');
         $log = $this->ActivityLogs->find()
             ->where(['scope_model' => '\MyApp'])
             ->order(['id' => 'desc'])->first();
-        /* @var $log ActivityLog */
+        /** @var ActivityLog $log */
         $this->assertEquals(1, $log->scope_id, 'スコープが指定されている');
 
-        //
         $article = $this->Articles->get(2);
         $user = $this->Users->get(1);
         $comment = $this->Comments->newEntity([
@@ -295,7 +285,6 @@ class LoggerBehaviorTest extends TestCase
 
     public function testSaveWithScopeMap()
     {
-        //
         $article = $this->Articles->get(2);
         $user = $this->Users->get(1);
         $comment = $this->Comments->newEntity([
@@ -332,11 +321,10 @@ class LoggerBehaviorTest extends TestCase
         ]);
         $this->Authors->save($author);
         $log = $this->ActivityLogs->find()->order(['id' => 'desc'])->first();
-        /* @var $log ActivityLog */
+        /** @var ActivityLog $log */
         $this->assertSame('Elastic/ActivityLogger.Users', $log->issuer_model, '発行者が指定されている');
         $this->assertEquals($user->id, $log->issuer_id, '発行者が指定されている');
 
-        //
         $article = $this->Articles->get(2);
         $user = $this->Users->get(1);
         $comment = $this->Comments->newEntity([
@@ -420,7 +408,6 @@ class LoggerBehaviorTest extends TestCase
     public function testLogMessageBuilder()
     {
         $this->assertNull($this->Articles->getLogMessageBuilder());
-        //
         $this->Articles->setLogMessageBuilder(function (ActivityLog $log, array $context) {
             if (!empty($log->message)) {
                 return $log->message;
@@ -483,7 +470,6 @@ class LoggerBehaviorTest extends TestCase
     public function testLogMessageBuilderSetterGetter()
     {
         $this->assertNull($this->Articles->getLogMessageBuilder());
-        //
         $this->Articles->setLogMessageBuilder(function (ActivityLog $log, array $context) {
             if (!empty($log->message)) {
                 return $log->message;
@@ -598,25 +584,21 @@ class LoggerBehaviorTest extends TestCase
         ]);
         $this->Comments->setLogIssuer($user)->setLogScope([$article])->save($comment);
 
-        //
         $authorLogs = $this->Authors->find('activity', ['scope' => $author])
             ->all()
             ->toArray();
         $this->assertCount(1, $authorLogs);
         $this->assertSame('Elastic/ActivityLogger.Articles', $authorLogs[0]->object_model);
-        //
         $articleLogs = $this->Articles->find('activity', ['scope' => $article])
             ->all()
             ->toArray();
         $this->assertCount(2, $articleLogs);
         $this->assertSame('Elastic/ActivityLogger.Comments', $articleLogs[0]->object_model, '最新のものが上に表示される');
         $this->assertSame('Elastic/ActivityLogger.Articles', $articleLogs[1]->object_model);
-        //
         $commentLogs = $this->Comments->find('activity', ['scope' => $comment])
             ->all()
             ->toArray();
         $this->assertCount(0, $commentLogs);
-        //
         $userLogs = $this->Users->find('activity', ['scope' => $user])
             ->all()
             ->toArray();

@@ -1,12 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Test\TestCase\Model\Table;
 
 use Cake\Core\Configure;
-use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
-use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
-use Elastic\ActivityLogger\Model\Table\AuthorsTable;
 
 /**
  * Elastic\ActivityLogger\Model\Table\ActivityLogsTable Test Case
@@ -31,7 +29,7 @@ class ActivityLogsTableTest extends TestCase
      *
      * @return void
      */
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
@@ -44,7 +42,7 @@ class ActivityLogsTableTest extends TestCase
      *
      * @return void
      */
-    public function tearDown() : void
+    public function tearDown(): void
     {
         unset($this->ActivityLogs);
         unset($this->Authors);
@@ -83,14 +81,12 @@ class ActivityLogsTableTest extends TestCase
 
     public function testFindScope()
     {
-        //
         $author = $this->Authors->get(1);
         $logs = $this->ActivityLogs->find('scope', ['scope' => $author])
             ->all()->toArray();
         $this->assertCount(3, $logs);
         $this->assertSame('Elastic/ActivityLogger.Authors', $logs[0]->scope_model);
         $this->assertSame('1', $logs[0]->scope_id);
-        //
         $logs = $this->ActivityLogs->find('scope', ['scope' => 'Custom'])
             ->all()->toArray();
         $this->assertCount(1, $logs);
@@ -100,7 +96,6 @@ class ActivityLogsTableTest extends TestCase
 
     public function testFindIssuer()
     {
-        //
         $author = $this->Authors->get(2);
         $logs = $this->ActivityLogs->find('issuer', ['issuer' => $author])
             ->all()->toArray();
