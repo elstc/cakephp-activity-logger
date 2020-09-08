@@ -95,11 +95,11 @@ class LoggerBehavior extends Behavior
 
     /**
      * @param Event $event the event
-     * @param Entity $entity saving entity
+     * @param EntityInterface $entity saving entity
      * @param ArrayObject $options save options
      * @return void
      */
-    public function afterSave(Event $event, Entity $entity, ArrayObject $options)
+    public function afterSave(Event $event, EntityInterface $entity, ArrayObject $options)
     {
         $entity->setSource($this->_table->getRegistryAlias()); // for entity of belongsToMany intermediate table
         $log = $this->buildLog($entity, $this->getConfig('issuer'));
@@ -113,11 +113,11 @@ class LoggerBehavior extends Behavior
 
     /**
      * @param Event $event the event
-     * @param Entity $entity deleted entity
+     * @param EntityInterface $entity deleted entity
      * @param ArrayObject $options delete options
      * @return void
      */
-    public function afterDelete(Event $event, Entity $entity, ArrayObject $options)
+    public function afterDelete(Event $event, EntityInterface $entity, ArrayObject $options)
     {
         $entity->setSource($this->_table->getRegistryAlias()); // for entity of belongsToMany intermediate table
         $log = $this->buildLog($entity, $this->getConfig('issuer'));
@@ -184,10 +184,10 @@ class LoggerBehavior extends Behavior
     /**
      * ログ発行者の設定
      *
-     * @param Entity $issuer the issuer
+     * @param EntityInterface $issuer the issuer
      * @return Table|self
      */
-    public function setLogIssuer(Entity $issuer)
+    public function setLogIssuer(EntityInterface $issuer)
     {
         $this->setConfig('issuer', $issuer);
 
