@@ -61,7 +61,7 @@ class LoggerBehavior extends Behavior
     /**
      * @return array
      */
-    public function implementedEvents()
+    public function implementedEvents() : array
     {
         return parent::implementedEvents() + [
                 'Model.initialize' => 'afterInit',
@@ -108,7 +108,6 @@ class LoggerBehavior extends Behavior
         $log->message = $this->buildMessage($log, $entity, $this->getConfig('issuer'));
 
         $logs = $this->duplicateLogByScope($this->getConfig('scope'), $log, $entity);
-
         $this->saveLogs($logs);
     }
 
@@ -561,7 +560,7 @@ class LoggerBehavior extends Behavior
      * @param bool $merge override
      * @return void
      */
-    protected function _configWrite($key, $value, $merge = false)
+    protected function _configWrite($key, $value, $merge = false) : void
     {
         if ($key === 'scope') {
             $value = $this->buildScope($value);
