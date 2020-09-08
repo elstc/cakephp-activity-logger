@@ -504,7 +504,7 @@ class LoggerBehavior extends Behavior
             $tableLocator = $this->tableLocator();
         }
 
-        return $tableLocator->get('ActivityLog', [
+        return $tableLocator->get('ActivityLogs', [
             'className' => $this->getConfig('logModel'),
         ]);
     }
