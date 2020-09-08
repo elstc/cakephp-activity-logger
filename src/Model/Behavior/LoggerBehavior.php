@@ -105,7 +105,6 @@ class LoggerBehavior extends Behavior
         $log->message = $this->buildMessage($log, $entity, $this->getConfig('issuer'));
 
         $logs = $this->duplicateLogByScope($this->getConfig('scope'), $log, $entity);
-        #$logs[] = $log;
         $this->saveLogs($logs);
     }
 
@@ -485,7 +484,7 @@ class LoggerBehavior extends Behavior
         $logTable = $this->getLogTable();
         /* @var ActivityLogsTable $logTable */
         foreach ($logs as $log) {
-            $logTable->save($log);
+            $logTable->save($log, ['atomic' => false]);
         }
     }
 

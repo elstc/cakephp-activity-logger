@@ -8,7 +8,7 @@
         "ext-pdo": "*",
         "ext-json": "*",
         "psr/log": "^1.0",
-        "cakephp/cakephp": "4.0.*"
+        "cakephp/cakephp": "^4.0"
     },
     "require-dev": {
         "cakephp/cakephp-codesniffer": "^3.3",
