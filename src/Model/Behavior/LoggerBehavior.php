@@ -497,13 +497,7 @@ class LoggerBehavior extends Behavior
      */
     private function getLogTable()
     {
-        if (method_exists($this, 'getTableLocator')) {
-            $tableLocator = $this->getTableLocator();
-        } else {
-            $tableLocator = $this->tableLocator();
-        }
-
-        return $tableLocator->get('ActivityLogs', [
+        return $this->getTableLocator()->get('ActivityLogs', [
             'className' => $this->getConfig('logModel'),
         ]);
     }
@@ -522,13 +516,7 @@ class LoggerBehavior extends Behavior
             return null;
         }
 
-        if (method_exists($entity, 'getVisible')) {
-            // CakePHP >= 3.8
-            return $entity->extract($entity->getVisible(), true);
-        }
-
-        // CakePHP < 3.8
-        return $entity->extract($entity->visibleProperties(), true);
+        return $entity->extract($entity->getVisible(), true);
     }
 
     /**
@@ -545,13 +533,7 @@ class LoggerBehavior extends Behavior
             return null;
         }
 
-        if (method_exists($entity, 'getVisible')) {
-            // CakePHP >= 3.8
-            return $entity->extract($entity->getVisible());
-        }
-
-        // CakePHP < 3.8
-        return $entity->extract($entity->visibleProperties());
+        return $entity->extract($entity->getVisible());
     }
 
     /**

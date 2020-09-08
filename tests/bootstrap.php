@@ -1,6 +1,7 @@
 <?php
 
-use Cake\Core\Configure;
+use Cake\I18n\FrozenTime;
+use Cake\I18n\Time;
 
 /**
  * Test suite bootstrap for RememberMe.
@@ -28,14 +29,8 @@ $here = __DIR__;
 chdir($root);
 require $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
 
-// Disable deprecations for now when using 3.6
-if (version_compare(Configure::version(), '3.6.0', '>=')) {
-    error_reporting(E_ALL ^ E_USER_DEPRECATED);
-}
-if (class_exists('\Cake\I18n\FrozenTime')) {
-    \Cake\I18n\FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
-}
-\Cake\I18n\Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
+FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
+Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 
 error_reporting(E_ALL);
 
