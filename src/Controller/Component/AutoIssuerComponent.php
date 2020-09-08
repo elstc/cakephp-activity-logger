@@ -5,6 +5,7 @@ namespace Elastic\ActivityLogger\Controller\Component;
 use Cake\Controller\Component;
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Component\AuthComponent;
+use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\ORM\Entity;
@@ -159,8 +160,8 @@ class AutoIssuerComponent extends Component
         }
 
         // ログインユーザーが取得できていればセットする
-        if (!empty($this->issuer) && $table->behaviors()->hasMethod('logIssuer')) {
-            $table->logIssuer($this->issuer);
+        if (!empty($this->issuer) && $table->behaviors()->hasMethod('setLogIssuer')) {
+            $table->setLogIssuer($this->issuer);
         }
     }
 
@@ -182,14 +183,14 @@ class AutoIssuerComponent extends Component
     /**
      * 登録されているモデルにログインユーザーをセットする
      *
-     * @param Entity $issuer A issuer
+     * @param EntityInterface $issuer A issuer
      * @return void
      */
-    private function setIssuerToAllModel(Entity $issuer)
+    private function setIssuerToAllModel(EntityInterface $issuer)
     {
         foreach ($this->tables as $alias => $table) {
-            if ($table->behaviors()->hasMethod('logIssuer')) {
-                $table->logIssuer($issuer);
+            if ($table->behaviors()->hasMethod('setLogIssuer')) {
+                $table->setLogIssuer($issuer);
             }
         }
     }
@@ -198,7 +199,7 @@ class AutoIssuerComponent extends Component
      * ユーザーエンティティの取得
      *
      * @param array $user a User entity
-     * @return Entity|null
+     * @return EntityInterface|null
      */
     private function getIssuerFromUserArray($user)
     {

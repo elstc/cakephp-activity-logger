@@ -317,7 +317,7 @@ class LoggerBehavior extends Behavior
      *
      * @param EntityInterface $entity the entity
      * @param EntityInterface $issuer the issuer
-     * @return ActivityLog
+     * @return ActivityLog|EntityInterface
      */
     private function buildLog(EntityInterface $entity = null, EntityInterface $issuer = null)
     {

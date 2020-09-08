@@ -7,7 +7,6 @@ use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Component\AuthComponent;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
-use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent;
 use Elastic\ActivityLogger\Model\Entity\User;
@@ -114,7 +113,7 @@ class AutoIssuerComponentTest extends TestCase
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
             ->disableOriginalConstructor()
-            ->setMethods(['user'])
+            ->onlyMethods(['user'])
             ->getMock();
         $auth->method('user')
             ->willReturn([
@@ -124,7 +123,7 @@ class AutoIssuerComponentTest extends TestCase
 
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
-        $result = EventManager::instance()->dispatch($event);
+        EventManager::instance()->dispatch($event);
 
         // The model defined in `initializedTables` will set an issuer
         $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
@@ -146,7 +145,7 @@ class AutoIssuerComponentTest extends TestCase
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
             ->disableOriginalConstructor()
-            ->setMethods(['user'])
+            ->onlyMethods(['user'])
             ->getMock();
         $auth->method('user')
             ->willReturn(null);
@@ -154,7 +153,7 @@ class AutoIssuerComponentTest extends TestCase
 
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
-        $result = EventManager::instance()->dispatch($event);
+        EventManager::instance()->dispatch($event);
 
         // If not authenticated, the issuer will not be set
         $this->assertNull($this->Articles->getLogIssuer());
@@ -212,7 +211,7 @@ class AutoIssuerComponentTest extends TestCase
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
             ->disableOriginalConstructor()
-            ->setMethods(['user'])
+            ->onlyMethods(['user'])
             ->getMock();
         $auth->method('user')
             ->willReturn([
@@ -222,7 +221,7 @@ class AutoIssuerComponentTest extends TestCase
 
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
-        $result = EventManager::instance()->dispatch($event);
+        EventManager::instance()->dispatch($event);
         // --
 
         // reload Table
