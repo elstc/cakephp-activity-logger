@@ -42,9 +42,9 @@ class ActivityLogsTable extends Table
     {
         $schema = parent::_initializeSchema($table);
         if (method_exists($schema, 'setColumnType')) {
-            $schema->setColumnType('data', 'json_data');
+            $schema->setColumnType('data', 'json');
         } else {
-            $schema->columnType('data', 'json_data');
+            $schema->columnType('data', 'json');
         }
 
         return $schema;

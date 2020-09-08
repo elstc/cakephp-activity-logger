@@ -10,6 +10,7 @@ use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
+use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
@@ -43,6 +44,8 @@ use Psr\Log\LogLevel;
  */
 class LoggerBehavior extends Behavior
 {
+    use LocatorAwareTrait;
+
     /**
      * Default configuration.
      *
@@ -491,17 +494,17 @@ class LoggerBehavior extends Behavior
 
     /**
      *
-     * @return ActivityLogsTable
+     * @return ActivityLogsTable|Table
      */
     private function getLogTable()
     {
-        if (method_exists(TableRegistry::class, 'getTableLocator')) {
-            $tableLocator = TableRegistry::getTableLocator();
+        if (method_exists($this, 'getTableLocator')) {
+            $tableLocator = $this->getTableLocator();
         } else {
-            $tableLocator = TableRegistry::locator();
+            $tableLocator = $this->tableLocator();
         }
 
-        return $tableLocator->get('ActivityLog', [
+        return $tableLocator->get('ActivityLogs', [
             'className' => $this->getConfig('logModel'),
         ]);
     }
