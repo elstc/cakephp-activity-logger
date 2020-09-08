@@ -41,11 +41,11 @@ class LoggerBehaviorTest extends TestCase
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
         $this->Logger = new LoggerBehavior(new \Cake\ORM\Table());
-        $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
-        $this->Articles = TableRegistry::get('Elastic/ActivityLogger.Articles');
-        $this->Comments = TableRegistry::get('Elastic/ActivityLogger.Comments');
-        $this->Users = TableRegistry::get('Elastic/ActivityLogger.Users');
-        $this->ActivityLogs = TableRegistry::get('Elastic/ActivityLogger.ActivityLogs');
+        $this->Authors = $this->getTableLocator()->get('Elastic/ActivityLogger.Authors');
+        $this->Articles = $this->getTableLocator()->get('Elastic/ActivityLogger.Articles');
+        $this->Comments = $this->getTableLocator()->get('Elastic/ActivityLogger.Comments');
+        $this->Users = $this->getTableLocator()->get('Elastic/ActivityLogger.Users');
+        $this->ActivityLogs = $this->getTableLocator()->get('Elastic/ActivityLogger.ActivityLogs');
     }
 
     public function tearDown() : void

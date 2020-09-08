@@ -495,7 +495,7 @@ class LoggerBehavior extends Behavior
             } elseif (is_string($arg)) {
                 $new[$arg] = null;
             } elseif ($arg instanceof Entity) {
-                $table = TableRegistry::get($arg->getSource());
+                $table = TableRegistry::getTableLocator()->get($arg->getSource());
                 $scopeId = $this->getLogTable()->getScopeId($table, $arg);
                 $new[$table->getRegistryAlias()] = $scopeId;
             }

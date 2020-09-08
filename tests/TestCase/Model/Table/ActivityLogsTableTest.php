@@ -35,8 +35,8 @@ class ActivityLogsTableTest extends TestCase
     {
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
-        $this->ActivityLogs = TableRegistry::get('Elastic/ActivityLogger.ActivityLogs');
-        $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
+        $this->ActivityLogs = $this->getTableLocator()->get('Elastic/ActivityLogger.ActivityLogs');
+        $this->Authors = $this->getTableLocator()->get('Elastic/ActivityLogger.Authors');
     }
 
     /**

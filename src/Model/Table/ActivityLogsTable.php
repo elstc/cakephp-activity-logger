@@ -180,7 +180,7 @@ class ActivityLogsTable extends Table
         $objectModel = null;
         $objectId = null;
         if ($object && $object instanceof Entity) {
-            $objectTable = TableRegistry::get($object->getSource());
+            $objectTable = TableRegistry::getTableLocator()->get($object->getSource());
             $objectModel = $objectTable->getRegistryAlias();
             $objectId = $this->getScopeId($objectTable, $object);
         }

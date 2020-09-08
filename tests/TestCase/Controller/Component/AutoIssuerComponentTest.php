@@ -59,12 +59,13 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function setUp() : void {
+    public function setUp() : void
+    {
         parent::setUp();
 
-        $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
-        $this->Articles = TableRegistry::get('Elastic/ActivityLogger.Articles');
-        $this->Comments = TableRegistry::get('Elastic/ActivityLogger.Comments');
+        $this->Authors = $this->getTableLocator()->get('Elastic/ActivityLogger.Authors');
+        $this->Articles = $this->getTableLocator()->get('Elastic/ActivityLogger.Articles');
+        $this->Comments = $this->getTableLocator()->get('Elastic/ActivityLogger.Comments');
 
         $this->registry = new ComponentRegistry();
         $this->AutoIssuer = new AutoIssuerComponent($this->registry, [
@@ -225,8 +226,8 @@ class AutoIssuerComponentTest extends TestCase
         // --
 
         // reload Table
-        TableRegistry::remove('Elastic/ActivityLogger.Authors');
-        $this->Authors = TableRegistry::get('Elastic/ActivityLogger.Authors');
+        $this->getTableLocator()->remove('Elastic/ActivityLogger.Authors');
+        $this->Authors = $this->getTableLocator()->get('Elastic/ActivityLogger.Authors');
 
         // will set issuer
         $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
