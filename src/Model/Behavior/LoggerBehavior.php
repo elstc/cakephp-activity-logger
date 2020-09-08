@@ -144,7 +144,7 @@ class LoggerBehavior extends Behavior
      * ログスコープの設定
      *
      * @param mixed $args if $args === false リセット
-     * @return void
+     * @return Table|self
      */
     public function setLogScope($args)
     {
@@ -167,6 +167,8 @@ class LoggerBehavior extends Behavior
             }
             $this->setConfig('scope', $scope);
         }
+
+        return $this->_table;
     }
 
     /**
@@ -202,7 +204,7 @@ class LoggerBehavior extends Behavior
      * ログ発行者の設定
      *
      * @param Entity $issuer the issuer
-     * @return void
+     * @return Table|self
      */
     public function setLogIssuer(Entity $issuer)
     {
@@ -213,6 +215,8 @@ class LoggerBehavior extends Behavior
         if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
             $this->setLogScope($issuer);
         }
+
+        return $this->_table;
     }
 
     /**
@@ -254,11 +258,13 @@ class LoggerBehavior extends Behavior
      * メッセージ生成メソッドの設定
      *
      * @param callable $handler the message build method
-     * @return void
+     * @return Table|self
      */
     public function setLogMessageBuilder(callable $handler = null)
     {
         $this->setConfig('messageBuilder', $handler);
+
+        return $this->_table;
     }
 
     /**
@@ -283,7 +289,7 @@ class LoggerBehavior extends Behavior
      *
      * @param string $message the message
      * @param bool $persist if true, keeps the message.
-     * @return void
+     * @return Table|self
      */
     public function setLogMessage($message, $persist = false)
     {
@@ -294,6 +300,8 @@ class LoggerBehavior extends Behavior
 
             return $message;
         });
+
+        return $this->_table;
     }
 
     /**
