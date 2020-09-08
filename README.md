@@ -1,11 +1,11 @@
-# ActivityLogger plugin for CakePHP 3.x
+# ActivityLogger plugin for CakePHP 4.x
 
 <p align="center">
     <a href="LICENSE.txt" target="_blank">
         <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
     </a>
     <a href="https://travis-ci.org/elstc/cakephp-activity-logger" target="_blank">
-        <img alt="Build Status" src="https://img.shields.io/travis/elstc/cakephp-activity-logger/master.svg?style=flat-square">
+        <img alt="Build Status" src="https://img.shields.io/travis/elstc/cakephp-activity-logger/cake4.svg?style=flat-square">
     </a>
     <a href="https://codecov.io/gh/elstc/cakephp-activity-logger" target="_blank">
         <img alt="Codecov" src="https://img.shields.io/codecov/c/github/elstc/cakephp-activity-logger.svg?style=flat-square">
@@ -27,16 +27,10 @@ composer require elstc/cakephp-activity-logger
 
 ### Load plugin
 
-(CakePHP >= 3.6.0) Load the plugin by adding the following statement in your project's `src/Application.php`:
+Load the plugin by adding the following statement in your project's `src/Application.php`:
 
 ```
 $this->addPlugin('Elastic/ActivityLogger');
-```
-
-(CakePHP <= 3.5.x) Load the plugin by adding the following statement in your project's `config/bootstrap.php` file:
-
-```
-Plugin::load('Elastic/ActivityLogger');
 ```
 
 ### Create activity_logs table
