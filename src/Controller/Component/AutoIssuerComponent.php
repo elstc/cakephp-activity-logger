@@ -8,9 +8,9 @@ use Cake\Controller\Component\AuthComponent;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\ORM\Entity;
+use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Locator\LocatorInterface;
 use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 
 /**
@@ -25,6 +25,8 @@ use Cake\Utility\Hash;
  */
 class AutoIssuerComponent extends Component
 {
+    use LocatorAwareTrait;
+
     /**
      * Default configuration.
      *
@@ -63,10 +65,10 @@ class AutoIssuerComponent extends Component
     {
         parent::__construct($registry, $config);
 
-        if (method_exists(TableRegistry::class, 'getTableLocator')) {
-            $this->tableLocator = TableRegistry::getTableLocator();
+        if (method_exists($this, 'getTableLocator')) {
+            $this->tableLocator = $this->getTableLocator();
         } else {
-            $this->tableLocator = TableRegistry::locator();
+            $this->tableLocator = $this->tableLocator();
         }
 
         $this->setInitializedTables($this->getConfig('initializedTables'));
