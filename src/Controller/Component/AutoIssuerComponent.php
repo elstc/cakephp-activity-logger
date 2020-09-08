@@ -23,6 +23,8 @@ use RuntimeException;
  *  'userModel': Set AuthComponent's 'userModel'.
  *  'initializedTables': If there is load to the Table class before the execution of `Controller.startup` event,
  *                       please describe here.
+ *
+ * @todo support Authentication plugin
  */
 class AutoIssuerComponent extends Component
 {
