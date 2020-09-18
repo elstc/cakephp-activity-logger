@@ -12,11 +12,11 @@ use Psr\Log\LogLevel;
 /**
  * Elastic\ActivityLogger\Model\Behavior\LoggerBehavior Test Case
  *
- * @property ActivityLogsTable $ActivityLogs
- * @property AuthorsTable $Authors
- * @property ArticlesTable $Articles
- * @property CommentsTable $Comments
- * @property UsersTable $Users
+ * @property \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $ActivityLogs
+ * @property \Elastic\ActivityLogger\Model\Table\AuthorsTable $Authors
+ * @property \Elastic\ActivityLogger\Model\Table\ArticlesTable $Articles
+ * @property \Elastic\ActivityLogger\Model\Table\CommentsTable $Comments
+ * @property \Elastic\ActivityLogger\Model\Table\UsersTable $Users
  * @property LoggerBehavior $Logger
  */
 class LoggerBehaviorTest extends TestCase
@@ -440,6 +440,7 @@ class LoggerBehaviorTest extends TestCase
             'body' => '新しいバージョン 1.0 をリリースしました。',
             'author' => $author,
         ]);
+        /** @var \Elastic\ActivityLogger\Model\Entity\Article $article */
         $this->Articles->setLogIssuer($author);
         $this->Articles->save($article);
 
@@ -502,6 +503,7 @@ class LoggerBehaviorTest extends TestCase
             'body' => '新しいバージョン 1.0 をリリースしました。',
             'author' => $author,
         ]);
+        /** @var \Elastic\ActivityLogger\Model\Entity\Article $article */
         $this->Articles->setLogIssuer($author);
         $this->Articles->save($article);
 
@@ -541,6 +543,7 @@ class LoggerBehaviorTest extends TestCase
             'body' => '新しいバージョン 1.0 をリリースしました。',
             'author' => $author,
         ]);
+        /** @var \Elastic\ActivityLogger\Model\Entity\Article $article */
         $this->Articles->save($article);
 
         // Update the article

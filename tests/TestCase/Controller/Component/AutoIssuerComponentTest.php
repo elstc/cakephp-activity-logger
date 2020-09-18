@@ -37,17 +37,17 @@ class AutoIssuerComponentTest extends TestCase
     private $registry;
 
     /**
-     * @var AuthorsTable
+     * @var \Elastic\ActivityLogger\Model\Table\AuthorsTable
      */
     private $Authors;
 
     /**
-     * @var ArticlesTable
+     * @var \Elastic\ActivityLogger\Model\Table\ArticlesTable
      */
     private $Articles;
 
     /**
-     * @var CommentsTable
+     * @var \Elastic\ActivityLogger\Model\Table\CommentsTable
      */
     private $Comments;
 
@@ -168,7 +168,7 @@ class AutoIssuerComponentTest extends TestCase
     {
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
-        $result = EventManager::instance()->dispatch($event);
+        EventManager::instance()->dispatch($event);
 
         // If not authenticated, the issuer will not be set
         $this->assertNull($this->Articles->getLogIssuer());
@@ -186,7 +186,7 @@ class AutoIssuerComponentTest extends TestCase
         // Dispatch Auth.afterIdentify Event
         $event = new Event('Auth.afterIdentify');
         $event->setData([['id' => 2], new BasicAuthenticate($this->registry)]);
-        $result = EventManager::instance()->dispatch($event);
+        EventManager::instance()->dispatch($event);
 
         // The model defined in `initializedTables` will set an issuer
         $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());

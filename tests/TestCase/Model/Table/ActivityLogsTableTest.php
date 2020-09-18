@@ -9,8 +9,8 @@ use Cake\TestSuite\TestCase;
 /**
  * Elastic\ActivityLogger\Model\Table\ActivityLogsTable Test Case
  *
- * @property ActivityLogsTable $ActivityLogs
- * @property AuthorsTable $Authors
+ * @property \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $ActivityLogs
+ * @property \Elastic\ActivityLogger\Model\Table\AuthorsTable $Authors
  */
 class ActivityLogsTableTest extends TestCase
 {

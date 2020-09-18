@@ -85,15 +85,14 @@ class AutoIssuerComponent extends Component
     /**
      * on Controller.startup
      *
-     * @param \Cake\Event\Event $event the Event
      * @return void
      */
-    public function startup(Event $event)
+    public function startup()
     {
         try {
             # ToDo: this will possibly break the whole functionality when not using AuthComponent
             $auth = $this->_registry->get('Auth');
-        /** @var \Elastic\ActivityLogger\Controller\Component\AuthComponent $auth */
+        /** @var \Cake\Controller\Component\AuthComponent $auth */
         } catch (RuntimeException $e) {
             $auth = null;
         }
@@ -150,7 +149,7 @@ class AutoIssuerComponent extends Component
     public function onInitializeModel(Event $event)
     {
         $table = $event->getSubject();
-        /** @var \Elastic\ActivityLogger\Controller\Component\Table $table */
+        /** @var \Cake\Orm\Table $table */
         if (!array_key_exists($table->getRegistryAlias(), $this->tables)) {
             $this->tables[$table->getRegistryAlias()] = $table;
         }
@@ -194,10 +193,10 @@ class AutoIssuerComponent extends Component
     /**
      * Get issuer from logged in user data (array)
      *
-     * @param array $user a User entity
+     * @param array|null $user a User entity
      * @return \Cake\Datasource\EntityInterface|null
      */
-    private function getIssuerFromUserArray($user)
+    private function getIssuerFromUserArray(?array $user)
     {
         $table = $this->getUserModel();
         $userId = Hash::get((array)$user, $table->getPrimaryKey());

@@ -22,7 +22,7 @@ use Cake\ORM\Entity;
  * @property string $level
  * @property string $action
  * @property string $message
- * @property string $data
+ * @property array $data
  */
 class ActivityLog extends Entity
 {

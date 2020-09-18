@@ -36,8 +36,8 @@ class ActivityLogsTable extends Table
     /**
      * Add data type
      *
-     * @param \Cake\Database\Schema\TableSchema $table the table
-     * @return \Cake\Database\Schema\TableSchema
+     * @param \Cake\Database\Schema\TableSchemaInterface $table the table
+     * @return \Cake\Database\Schema\TableSchemaInterface
      */
     protected function _initializeSchema(TableSchemaInterface $table): TableSchemaInterface
     {
@@ -172,10 +172,10 @@ class ActivityLogsTable extends Table
     /**
      * Build parameter from an entity
      *
-     * @param \Cake\Datasource\EntityInterface $object a entity
+     * @param \Cake\Datasource\EntityInterface|null $object a entity
      * @return array [object_model, object_id]
      */
-    public function buildObjectParameter($object)
+    public function buildObjectParameter(?EntityInterface $object)
     {
         $objectModel = null;
         $objectId = null;
