@@ -156,8 +156,8 @@ class AutoIssuerComponent extends Component
         }
 
         // set issuer to the model, if logged in user can get
-        if (!empty($this->issuer) && $table->behaviors()->hasMethod('logIssuer')) {
-            $table->logIssuer($this->issuer);
+        if (!empty($this->issuer) && $table->behaviors()->hasMethod('setLogIssuer')) {
+            $table->setLogIssuer($this->issuer);
         }
     }
 
@@ -185,8 +185,8 @@ class AutoIssuerComponent extends Component
     private function setIssuerToAllModel(Entity $issuer)
     {
         foreach ($this->tables as $alias => $table) {
-            if ($table->behaviors()->hasMethod('logIssuer')) {
-                $table->logIssuer($issuer);
+            if ($table->behaviors()->hasMethod('setLogIssuer')) {
+                $table->setLogIssuer($issuer);
             }
         }
     }

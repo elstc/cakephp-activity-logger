@@ -39,7 +39,7 @@ use Psr\Log\LogLevel;
  *
  * set Scope/Issuer
  * <pre><code>
- * $commentsTable->logScope([$artice, $author])->logIssuer($user);
+ * $commentsTable->setLogScope([$artice, $author])->setLogScope($user);
  * </code></pre>
  */
 class LoggerBehavior extends Behavior
