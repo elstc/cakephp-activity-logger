@@ -127,6 +127,7 @@ class AutoIssuerComponent extends Component
      *
      * @param \Cake\Event\Event $event the Event
      * @return void
+     * @noinspection PhpUnused
      */
     public function onAfterIdentify(Event $event)
     {
@@ -191,6 +192,7 @@ class AutoIssuerComponent extends Component
     {
         foreach ($this->tables as $alias => $table) {
             if ($table->behaviors()->hasMethod('setLogIssuer')) {
+                /** @noinspection PhpUndefinedMethodInspection */
                 $table->setLogIssuer($issuer);
             }
         }

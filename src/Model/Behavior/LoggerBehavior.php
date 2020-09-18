@@ -1,9 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/** @noinspection PhpUnusedLocalVariableInspection */
-/** @noinspection PhpUnusedParameterInspection */
-
 namespace Elastic\ActivityLogger\Model\Behavior;
 
 use Cake\Core\Configure;
