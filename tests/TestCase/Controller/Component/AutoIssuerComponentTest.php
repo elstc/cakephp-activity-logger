@@ -6,8 +6,10 @@ namespace Elastic\ActivityLogger\Test\TestCase\Controller\Component;
 use Cake\Auth\BasicAuthenticate;
 use Cake\Controller\Component\AuthComponent;
 use Cake\Controller\ComponentRegistry;
+use Cake\Controller\Controller;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
+use Cake\Http\ServerRequest;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent;
 use Elastic\ActivityLogger\Model\Entity\User;
@@ -52,6 +54,11 @@ class AutoIssuerComponentTest extends TestCase
     private $Comments;
 
     /**
+     * @var \Cake\Http\ServerRequest|\PHPUnit\Framework\MockObject\MockObject
+     */
+    private $request;
+
+    /**
      * setUp method
      *
      * @return void
@@ -64,7 +71,8 @@ class AutoIssuerComponentTest extends TestCase
         $this->Articles = $this->getTableLocator()->get('Elastic/ActivityLogger.Articles');
         $this->Comments = $this->getTableLocator()->get('Elastic/ActivityLogger.Comments');
 
-        $this->registry = new ComponentRegistry();
+        $this->request = $this->createMock(ServerRequest::class);
+        $this->registry = new ComponentRegistry(new Controller($this->request));
         $this->AutoIssuer = new AutoIssuerComponent($this->registry, [
             'userModel' => 'Elastic/ActivityLogger.Users',
             'initializedTables' => [
@@ -104,9 +112,65 @@ class AutoIssuerComponentTest extends TestCase
     /**
      * Test Controller.startup Event hook
      *
+     * - Work with Authentication plugin
+     *
      * @return void
      */
-    public function testStartup()
+    public function testStartupWithAuthenticationPlugin()
+    {
+        // Set identity
+        $this->request
+            ->method('getAttribute')
+            ->with('identity')
+            ->willReturn(new User([
+                'id' => 1,
+            ]));
+
+        // Dispatch Controller.startup Event
+        $event = new Event('Controller.startup');
+        EventManager::instance()->dispatch($event);
+
+        // The model defined in `initializedTables` will set an issuer
+        $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
+        $this->assertSame(1, $this->Articles->getLogIssuer()->id);
+        $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
+        $this->assertSame(1, $this->Comments->getLogIssuer()->id);
+
+        // The model undefined in `initializedTables` not set the issuer
+        $this->assertNull($this->Authors->getLogIssuer());
+    }
+
+    /**
+     * Test Controller.startup Event hook
+     *
+     * @return void
+     */
+    public function testStartupWithNotAuthenticated()
+    {
+        // Set identity
+        $this->request
+            ->method('getAttribute')
+            ->with('identity')
+            ->willReturn(null);
+
+        // Dispatch Controller.startup Event
+        $event = new Event('Controller.startup');
+        EventManager::instance()->dispatch($event);
+
+        // If not authenticated, the issuer will not be set
+        $this->assertNull($this->Articles->getLogIssuer());
+        $this->assertNull($this->Comments->getLogIssuer());
+        $this->assertNull($this->Authors->getLogIssuer());
+    }
+
+    /**
+     * Test Controller.startup Event hook
+     *
+     * - Work with AuthComponent
+     *
+     * @return void
+     */
+    public function testStartupWithAuthComponent()
     {
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
@@ -138,7 +202,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testStartupWithNotAuthenticated()
+    public function testStartupWithAuthComponentNotAuthenticated()
     {
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
@@ -149,23 +213,6 @@ class AutoIssuerComponentTest extends TestCase
             ->willReturn(null);
         $this->registry->set('Auth', $auth);
 
-        // Dispatch Controller.startup Event
-        $event = new Event('Controller.startup');
-        EventManager::instance()->dispatch($event);
-
-        // If not authenticated, the issuer will not be set
-        $this->assertNull($this->Articles->getLogIssuer());
-        $this->assertNull($this->Comments->getLogIssuer());
-        $this->assertNull($this->Authors->getLogIssuer());
-    }
-
-    /**
-     * Test Controller.startup Event hook
-     *
-     * @return void
-     */
-    public function testStartupWithNonAuthComponent()
-    {
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
         EventManager::instance()->dispatch($event);

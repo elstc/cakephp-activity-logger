@@ -10,15 +10,15 @@ use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\Utility\Hash;
-use RuntimeException;
 
 /**
  * AutoIssuer component
  *
- * Get authentication information from AuthComponent and set it to each Table as Issuer.
+ * Get authentication information from Authentication plugin (or AuthComponent) and set it to each Table as Issuer.
  *
  * config:
- *  'userModel': Set AuthComponent's 'userModel'.
+ *  'userModel': Set Identifiers 'userModel'.
+ *  'identityAttribute': The request attribute used to store the identity.
  *  'initializedTables': If there is load to the Table class before the execution of `Controller.startup` event,
  *                       please describe here.
  *
@@ -35,6 +35,7 @@ class AutoIssuerComponent extends Component
      */
     protected $_defaultConfig = [
         'userModel' => 'Users',
+        'identityAttribute' => 'identity',
         'initializedTables' => [],
     ];
 
@@ -89,20 +90,25 @@ class AutoIssuerComponent extends Component
      */
     public function startup()
     {
-        try {
-            # ToDo: this will possibly break the whole functionality when not using AuthComponent
+        $loadedComponents = $this->_registry->loaded();
+
+        $auth = null;
+        // Get a logged in user from AuthComponent
+        if (in_array('Auth', $loadedComponents)) {
             $auth = $this->_registry->get('Auth');
-        /** @var \Cake\Controller\Component\AuthComponent $auth */
-        } catch (RuntimeException $e) {
-            $auth = null;
-        }
-        if (!$auth) {
-            // AuthComponent is disabled
-            return;
+            if (is_a($auth, '\Cake\Controller\Component\AuthComponent')) {
+                $this->issuer = $this->getIssuerFromUserArray($auth->user());
+            }
         }
 
-        // Get a logged in user from AuthComponent
-        $this->issuer = $this->getIssuerFromUserArray($auth->user());
+        // Get a logged in user from the request identity attribute
+        if (!$this->issuer) {
+            $identity = $this->_registry->getController()->getRequest()
+                ->getAttribute($this->getConfig('identityAttribute'));
+            if ($identity) {
+                $this->issuer = $this->getIssuerFromUserArray($identity->getOriginalData());
+            }
+        }
 
         if (!$this->issuer) {
             // not logged in
@@ -191,15 +197,19 @@ class AutoIssuerComponent extends Component
     }
 
     /**
-     * Get issuer from logged in user data (array)
+     * Get issuer from logged in user data
      *
-     * @param array|null $user a User entity
+     * @param array|\ArrayAccess|null $user a User entity
      * @return \Cake\Datasource\EntityInterface|null
      */
-    private function getIssuerFromUserArray(?array $user)
+    private function getIssuerFromUserArray($user)
     {
+        if ($user === null) {
+            return null;
+        }
+
         $table = $this->getUserModel();
-        $userId = Hash::get((array)$user, $table->getPrimaryKey());
+        $userId = Hash::get($user, $table->getPrimaryKey());
         if ($userId) {
             return $table->get($userId);
         }

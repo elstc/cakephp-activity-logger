@@ -4,6 +4,7 @@
  */
 namespace Elastic\ActivityLogger\Model\Entity {
 
+    use Authentication\IdentityInterface;
     use Cake\ORM\Entity;
 
     /**
@@ -11,11 +12,21 @@ namespace Elastic\ActivityLogger\Model\Entity {
      * @property string $username
      * @property string $password
      */
-    class Author extends Entity
+    class Author extends Entity implements IdentityInterface
     {
         protected $_accessible = ['*' => true, 'id' => false];
 
         protected $_hidden = ['password'];
+
+        public function getIdentifier()
+        {
+            return $this->id;
+        }
+
+        public function getOriginalData()
+        {
+            return $this;
+        }
     }
 
     /**
@@ -23,11 +34,21 @@ namespace Elastic\ActivityLogger\Model\Entity {
      * @property string $username
      * @property string $password
      */
-    class User extends Entity
+    class User extends Entity implements IdentityInterface
     {
         protected $_accessible = ['*' => true, 'id' => false];
 
         protected $_hidden = ['password'];
+
+        public function getIdentifier()
+        {
+            return $this->id;
+        }
+
+        public function getOriginalData()
+        {
+            return $this;
+        }
     }
 
     /**
