@@ -13,7 +13,7 @@ use Cake\ORM\Table;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
 
 /**
- * LoggerBehaviorのメソッド補完
+ * Code completion for LoggerBehavior
  *
  * @deprecated since 1.2.0, use @mixin annotation
  */
@@ -21,10 +21,11 @@ use Elastic\ActivityLogger\Model\Entity\ActivityLog;
 trait LoggerBehaviorCompletion// @codingStandardsIgnoreEnd
 {
     /**
-     * ログスコープの設定
+     * Set or get the scope
      *
-     * @param mixed $args if $args === false リセット
-     * @return Table
+     * @param mixed $args if $args = false then reset the scope
+     * @return Table|array
+     * @deprecated 1.2.0 use setLogScope()/getLogScope() instead.
      */
     public function logScope($args = null)
     {
@@ -32,10 +33,11 @@ trait LoggerBehaviorCompletion// @codingStandardsIgnoreEnd
     }
 
     /**
-     * ログ発行者の設定
+     * Set or get the log issuer
      *
-     * @param Entity $issuer the log issuer
+     * @param Entity $issuer the issuer
      * @return Table
+     * @deprecated 1.2.0 use setLogIssuer()/getLogIssuer() instead.
      */
     public function logIssuer(Entity $issuer = null)
     {
@@ -43,10 +45,11 @@ trait LoggerBehaviorCompletion// @codingStandardsIgnoreEnd
     }
 
     /**
-     * メッセージ生成メソッドの設定
+     * Set or get the log message builder
      *
-     * @param callable $handler メッセージ生成メソッド
-     * @return callable
+     * @param callable $handler the message build method
+     * @return callable|void
+     * @deprecated 1.2.0 use setLogMessageBuilder()/getLogMessageBuilder() instead.
      */
     public function logMessageBuilder(callable $handler = null)
     {
@@ -54,7 +57,7 @@ trait LoggerBehaviorCompletion// @codingStandardsIgnoreEnd
     }
 
     /**
-     * カスタムログの記述
+     * Record a custom log
      *
      * @param string $level log level
      * @param string $message log message

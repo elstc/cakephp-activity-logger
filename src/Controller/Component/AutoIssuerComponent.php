@@ -38,7 +38,7 @@ class AutoIssuerComponent extends Component
     ];
 
     /**
-     * ログインユーザー
+     * A Logged in User
      *
      * @var Entity
      */
@@ -98,27 +98,27 @@ class AutoIssuerComponent extends Component
         /* @var $auth AuthComponent */
 
         if (!$auth) {
-            // Authコンポーネントが無効
+            // AuthComponent is disabled
             return;
         }
 
-        // ログインユーザーを取得
+        // Get a logged in user from AuthComponent
         $this->issuer = $this->getIssuerFromUserArray($auth->user());
 
         if (!$this->issuer) {
-            // 未ログイン
+            // not logged in
             return;
         }
 
-        // 登録されているモデルにセットする
+        // register issuer to the model
         $this->setIssuerToAllModel($this->issuer);
     }
 
     /**
      * on Auth.afterIdentify
      *
-     * - ログインユーザーをセット
-     * - ログインユーザーを登録されているモデルにセットする
+     * - get issuer from event data
+     * - register issuer to the model
      *
      * @param Event $event the Event
      * @return void
@@ -130,19 +130,19 @@ class AutoIssuerComponent extends Component
         $this->issuer = $this->getIssuerFromUserArray($user);
 
         if (!$this->issuer) {
-            // 未ログイン
+            // not logged in
             return;
         }
 
-        // 登録されているモデルにセットする
+        // register issuer to the model
         $this->setIssuerToAllModel($this->issuer);
     }
 
     /**
      * on Model.initialize
      *
-     * - テーブルリストへの追加
-     * - Issuerのセット
+     * - register the model to this component's table collection
+     * - set issuer to the model
      *
      * @param Event $event the event
      * @return void
@@ -155,14 +155,14 @@ class AutoIssuerComponent extends Component
             $this->tables[$table->getRegistryAlias()] = $table;
         }
 
-        // ログインユーザーが取得できていればセットする
+        // set issuer to the model, if logged in user can get
         if (!empty($this->issuer) && $table->behaviors()->hasMethod('logIssuer')) {
             $table->logIssuer($this->issuer);
         }
     }
 
     /**
-     * 初期化済テーブルを$tablesにセット
+     * Set initialized models to this component's table collection
      *
      * @param array $tables tables
      * @return void
@@ -177,7 +177,7 @@ class AutoIssuerComponent extends Component
     }
 
     /**
-     * 登録されているモデルにログインユーザーをセットする
+     * Set issuer to all models
      *
      * @param Entity $issuer A issuer
      * @return void
@@ -192,7 +192,7 @@ class AutoIssuerComponent extends Component
     }
 
     /**
-     * ユーザーエンティティの取得
+     * Get issuer from logged in user data (array)
      *
      * @param array $user a User entity
      * @return Entity|null
@@ -209,7 +209,7 @@ class AutoIssuerComponent extends Component
     }
 
     /**
-     * ユーザーテーブルの取得
+     * Get Users table class
      *
      * @return Table
      */

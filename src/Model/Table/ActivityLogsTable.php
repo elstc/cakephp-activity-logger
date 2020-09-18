@@ -131,7 +131,7 @@ class ActivityLogsTable extends Table
     }
 
     /**
-     * システムスコープのログの取得
+     * Find logs from system scope
      *
      * $table->find('system')
      *
@@ -147,7 +147,7 @@ class ActivityLogsTable extends Table
     }
 
     /**
-     * 操作者の指定
+     * Find logs with specific issuer
      *
      * $table->find('issuer', ['issuer' => $entity])
      *
@@ -173,7 +173,7 @@ class ActivityLogsTable extends Table
     }
 
     /**
-     * エンティティからパラメータの取得
+     * Build parameter from an entity
      *
      * @param EntityInterface $object a entity
      * @return array [object_model, object_id]
@@ -192,9 +192,9 @@ class ActivityLogsTable extends Table
     }
 
     /**
-     * プライマリキーを取得
+     * Get scope's ID
      *
-     * 複数プライマリキーの場合は連結して返す
+     * if composite primary key, it will return concatenate values
      *
      * @param Table $table target table
      * @param EntityInterface $entity a entity
@@ -206,7 +206,7 @@ class ActivityLogsTable extends Table
         if (is_string($primaryKey)) {
             return $entity->get($primaryKey);
         }
-        // 主キーが複数の場合は値を連結する
+        // concatenate values, if composite primary key
         $ids = [];
         foreach ($primaryKey as $field) {
             $ids[$field] = $entity->get($field);
