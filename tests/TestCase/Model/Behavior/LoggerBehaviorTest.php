@@ -65,12 +65,12 @@ class LoggerBehaviorTest extends TestCase
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
-        ], $this->Authors->getLogScope(), 'システムスコープがセットされている');
+        ], $this->Authors->getLogScope(), 'will set system scope');
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => null,
             'Elastic/ActivityLogger.Articles' => null,
             'Elastic/ActivityLogger.Users' => null,
-        ], $this->Comments->getLogScope(), 'systemScope = false ならばシステムスコープはセットされない');
+        ], $this->Comments->getLogScope(), 'if systemScope = false, will does not set system scope');
         $this->markTestIncomplete('Not cover all');
     }
 
@@ -81,21 +81,21 @@ class LoggerBehaviorTest extends TestCase
             'password' => 'bar',
         ]);
         $this->Authors->save($author);
-        // アクティビティログが保存されている
+        // Saved ActivityLogs
         $q = $this->ActivityLogs->find();
-        $this->assertCount(2, $q->all(), 'Authorsスコープとシステムスコープでログは2つ作成される');
+        $this->assertCount(2, $q->all(), 'record two logs, that the Authors scope and the System scope');
 
         $log = $q->first();
         /** @var ActivityLog $log */
-        $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
-        $this->assertSame(ActivityLog::ACTION_CREATE, $log->action, '新規作成なのでcreate');
-        $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
-        $this->assertSame('5', $log->object_id, '対象idは5');
+        $this->assertSame(LogLevel::INFO, $log->level, 'default log level is `info`');
+        $this->assertSame(ActivityLog::ACTION_CREATE, $log->action, 'that `create`, it is a new creation');
+        $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, 'object model is `Author`');
+        $this->assertSame('5', $log->object_id, 'object id is `5`');
         $this->assertEquals([
             'id' => 5,
             'username' => 'foo',
-        ], $log->data, '作成時のデータが記録されている');
-        $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
+        ], $log->data, 'recorded the data at the time of creation');
+        $this->assertArrayNotHasKey('password', $log->data, 'Does not recorded hidden values');
 
         // edit
         $author->setNew(false);
@@ -103,43 +103,43 @@ class LoggerBehaviorTest extends TestCase
         $author = $this->Authors->patchEntity($author, ['username' => 'anonymous']);
         $this->Authors->save($author);
 
-        // アクティビティログが保存されている
+        // Saved ActivityLogs
         $q = $this->ActivityLogs->find()->order(['id' => 'desc']);
-        $this->assertCount(4, $q->all(), 'Authorsスコープとシステムスコープでログは2つ作成される');
+        $this->assertCount(4, $q->all(), 'record two logs, that the Authors scope and the System scope');
 
         $log = $q->first();
         /** @var ActivityLog $log */
-        $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
-        $this->assertSame(ActivityLog::ACTION_UPDATE, $log->action, '更新なのでUpdate');
-        $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
-        $this->assertSame('5', $log->object_id, '対象idは5');
+        $this->assertSame(LogLevel::INFO, $log->level, 'default log level is `info`');
+        $this->assertSame(ActivityLog::ACTION_UPDATE, $log->action, 'that `update`, it is a updating');
+        $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, 'object model is `Author`');
+        $this->assertSame('5', $log->object_id, 'object id is `5`');
         $this->assertEquals([
             'username' => 'anonymous',
-        ], $log->data, '更新時のデータが記録されている');
-        $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
+        ], $log->data, 'recorded the data at the time of updating');
+        $this->assertArrayNotHasKey('password', $log->data, 'Does not recorded hidden values。');
     }
 
     public function testDelete()
     {
         $author = $this->Authors->get(1);
         $this->Authors->delete($author);
-        // アクティビティログが保存されている
+        // Saved ActivityLogs
         $q = $this->ActivityLogs->find();
         $this->assertCount(2, $q->all());
 
         $log = $q->first();
         /** @var ActivityLog $log */
-        $this->assertSame(LogLevel::INFO, $log->level, 'デフォルトのログレベルはinfo');
-        $this->assertSame(ActivityLog::ACTION_DELETE, $log->action, '削除なのでdelete');
-        $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, '対象モデルはAuthor');
-        $this->assertSame('1', $log->object_id, '対象idは1');
+        $this->assertSame(LogLevel::INFO, $log->level, 'default log level is `info`');
+        $this->assertSame(ActivityLog::ACTION_DELETE, $log->action, 'that `delete`, it is a deleting');
+        $this->assertSame('Elastic/ActivityLogger.Authors', $log->object_model, 'object model is `Author`');
+        $this->assertSame('1', $log->object_id, 'object id is `1`');
         $this->assertEquals([
             'id' => 1,
             'username' => 'mariano',
             'created' => '2007-03-17T01:16:23+00:00',
             'updated' => '2007-03-17T01:18:31+00:00',
-        ], $log->data, '削除対象のデータが記録されている');
-        $this->assertArrayNotHasKey('password', $log->data, 'hiddenプロパティは記録されない。');
+        ], $log->data, 'recorded the data at the time of deleting');
+        $this->assertArrayNotHasKey('password', $log->data, 'Does not recorded hidden values。');
     }
 
     public function testLogScope()
@@ -147,29 +147,29 @@ class LoggerBehaviorTest extends TestCase
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
-        ], $this->Authors->getLogScope(), 'ログのスコープが取得できる');
+        ], $this->Authors->getLogScope(), 'can get log scope');
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープが取得できる');
+        ], $this->Articles->getLogScope(), 'can get log scope');
 
-        // セットして取得
+        // Set and get
         $author = $this->Authors->get(1);
         $this->Authors->setLogScope($author);
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => 1,
             '\MyApp' => true,
-        ], $this->Authors->getLogScope(), 'ログのスコープが更新されている');
+        ], $this->Authors->getLogScope(), 'updated log scope');
         $article = $this->Articles->get(2);
         $this->Articles->setLogScope([$article, $author]);
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => 2,
             'Elastic/ActivityLogger.Authors' => 1,
             '\MyApp' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープが取得できる');
+        ], $this->Articles->getLogScope(), 'can get log scope');
 
-        // スコープの追加
+        // Add scope
         $this->Articles->setLogScope($this->Comments->get(3));
         $this->Articles->setLogScope('Custom');
         $this->Articles->setLogScope(['Another' => 4, 'Foo' => '005', 'Hoge']);
@@ -182,14 +182,14 @@ class LoggerBehaviorTest extends TestCase
             'Another' => 4,
             'Foo' => '005',
             'Hoge' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープがセットされている');
-        // スコープのリセット
+        ], $this->Articles->getLogScope(), 'updated log scope');
+        // Reset scope
         $this->Articles->setLogScope(false);
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープがリセットされている');
+        ], $this->Articles->getLogScope(), 'will reset log scope');
     }
 
     public function testLogScopeSetterGetter()
@@ -197,29 +197,29 @@ class LoggerBehaviorTest extends TestCase
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
-        ], $this->Authors->getLogScope(), 'ログのスコープが取得できる');
+        ], $this->Authors->getLogScope(), 'can get log scope');
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープが取得できる');
+        ], $this->Articles->getLogScope(), 'can get log scope');
 
-        // セットして取得
+        // Set and get
         $author = $this->Authors->get(1);
         $this->Authors->setLogScope($author);
         $this->assertSame([
             'Elastic/ActivityLogger.Authors' => 1,
             '\MyApp' => true,
-        ], $this->Authors->getLogScope(), 'ログのスコープが更新されている');
+        ], $this->Authors->getLogScope(), 'updated log scope');
         $article = $this->Articles->get(2);
         $this->Articles->setLogScope([$article, $author]);
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => 2,
             'Elastic/ActivityLogger.Authors' => 1,
             '\MyApp' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープが取得できる');
+        ], $this->Articles->getLogScope(), 'can get log scope');
 
-        // スコープの追加
+        // Add scope
         $this->Articles->setLogScope($this->Comments->get(3));
         $this->Articles->setLogScope('Custom');
         $this->Articles->setLogScope(['Another' => 4, 'Foo' => '005', 'Hoge']);
@@ -232,14 +232,14 @@ class LoggerBehaviorTest extends TestCase
             'Another' => 4,
             'Foo' => '005',
             'Hoge' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープがセットされている');
-        // スコープのリセット
+        ], $this->Articles->getLogScope(), 'will reset log scope');
+        // Reset scope
         $this->Articles->setLogScope(false);
         $this->assertSame([
             'Elastic/ActivityLogger.Articles' => null,
             'Elastic/ActivityLogger.Authors' => null,
             '\MyApp' => true,
-        ], $this->Articles->getLogScope(), 'ログのスコープがリセットされている');
+        ], $this->Articles->getLogScope(), 'will reset log scope');
     }
 
     public function testSaveWithScope()
@@ -253,12 +253,12 @@ class LoggerBehaviorTest extends TestCase
             ->where(['scope_model' => 'Elastic/ActivityLogger.Authors'])
             ->order(['id' => 'desc'])->first();
         /** @var ActivityLog $log */
-        $this->assertEquals($author->id, $log->scope_id, 'スコープが指定されている');
+        $this->assertEquals($author->id, $log->scope_id, 'will set scope');
         $log = $this->ActivityLogs->find()
             ->where(['scope_model' => '\MyApp'])
             ->order(['id' => 'desc'])->first();
         /** @var ActivityLog $log */
-        $this->assertEquals(1, $log->scope_id, 'スコープが指定されている');
+        $this->assertEquals(1, $log->scope_id, 'will set scope');
 
         $article = $this->Articles->get(2);
         $user = $this->Users->get(1);
@@ -277,10 +277,10 @@ class LoggerBehaviorTest extends TestCase
             ->toArray();
 
         $this->assertCount(2, $logs);
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'スコープが指定されている');
-        $this->assertEquals($user->id, $logs[0]->scope_id, 'スコープが指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'スコープが指定されている');
-        $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'will set scope model');
+        $this->assertEquals($user->id, $logs[0]->scope_id, 'will set scope');
+        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'will set scope model');
+        $this->assertEquals($article->id, $logs[1]->scope_id, 'will set scope');
     }
 
     public function testSaveWithScopeMap()
@@ -305,10 +305,10 @@ class LoggerBehaviorTest extends TestCase
             ->toArray();
 
         $this->assertCount(2, $logs);
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'スコープが指定されている');
-        $this->assertEquals($user->id, $logs[0]->scope_id, 'スコープが指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'スコープが指定されている');
-        $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'will set scope model');
+        $this->assertEquals($user->id, $logs[0]->scope_id, 'will set scope');
+        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'will set scope model');
+        $this->assertEquals($article->id, $logs[1]->scope_id, 'will set scope id');
     }
 
     public function testSaveWithIssuer()
@@ -322,7 +322,7 @@ class LoggerBehaviorTest extends TestCase
         $this->Authors->save($author);
         $log = $this->ActivityLogs->find()->order(['id' => 'desc'])->first();
         /** @var ActivityLog $log */
-        $this->assertSame('Elastic/ActivityLogger.Users', $log->issuer_model, '発行者が指定されている');
+        $this->assertSame('Elastic/ActivityLogger.Users', $log->issuer_model, 'will set issuer model');
         $this->assertEquals($user->id, $log->issuer_id, '発行者が指定されている');
 
         $article = $this->Articles->get(2);
@@ -343,14 +343,14 @@ class LoggerBehaviorTest extends TestCase
             ->toArray();
 
         $this->assertCount(2, $logs);
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, '発行者からスコープが指定されている');
-        $this->assertEquals($user->id, $logs[0]->scope_id, '発行者からスコープが指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->issuer_model, '発行者が指定されている');
-        $this->assertEquals($user->id, $logs[0]->issuer_id, '発行者が指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'スコープが指定されている');
-        $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[1]->issuer_model, '発行者が指定されている');
-        $this->assertEquals($user->id, $logs[1]->issuer_id, '発行者が指定されている');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'will set scope model from issuer');
+        $this->assertEquals($user->id, $logs[0]->scope_id, 'will set scope id from issuer');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->issuer_model, 'will set issuer model');
+        $this->assertEquals($user->id, $logs[0]->issuer_id, 'will set issuer id');
+        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[1]->scope_model, 'will set scope model');
+        $this->assertEquals($article->id, $logs[1]->scope_id, 'will set scope id');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[1]->issuer_model, 'will set issuer model');
+        $this->assertEquals($user->id, $logs[1]->issuer_id, 'will set issuer id');
     }
 
     public function testActivityLog()
@@ -374,30 +374,30 @@ class LoggerBehaviorTest extends TestCase
             ->toArray();
 
         $this->assertCount(3, $logs);
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, '発行者からスコープが指定されている');
-        $this->assertEquals($user->id, $logs[0]->scope_id, '発行者からスコープが指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->issuer_model, '発行者が指定されている');
-        $this->assertEquals($user->id, $logs[0]->issuer_id, '発行者が指定されている');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->scope_model, 'will set scope model');
+        $this->assertEquals($user->id, $logs[0]->scope_id, 'will set scope id');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[0]->issuer_model, 'will set issuer model');
+        $this->assertEquals($user->id, $logs[0]->issuer_id, 'will set issuer id');
         $this->assertSame('Elastic/ActivityLogger.Comments', $logs[0]->object_model);
         $this->assertEquals('2', $logs[0]->object_id);
         $this->assertSame($message, $logs[0]->message);
         $this->assertSame($level, $logs[0]->level);
         $this->assertSame('publish', $logs[0]->action);
 
-        $this->assertSame('Elastic/ActivityLogger.Authors', $logs[1]->scope_model, 'スコープが指定されている');
-        $this->assertEquals($article->id, $logs[1]->scope_id, 'スコープが指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[1]->issuer_model, '発行者が指定されている');
-        $this->assertEquals($user->id, $logs[1]->issuer_id, '発行者が指定されている');
+        $this->assertSame('Elastic/ActivityLogger.Authors', $logs[1]->scope_model, 'will set scope model');
+        $this->assertEquals($article->id, $logs[1]->scope_id, 'will set scope id');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[1]->issuer_model, 'will set issuer model');
+        $this->assertEquals($user->id, $logs[1]->issuer_id, 'will set issuer id');
         $this->assertSame('Elastic/ActivityLogger.Comments', $logs[1]->object_model);
         $this->assertEquals('2', $logs[1]->object_id);
         $this->assertSame($message, $logs[1]->message);
         $this->assertSame($level, $logs[1]->level);
         $this->assertSame('publish', $logs[1]->action);
 
-        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[2]->scope_model, 'スコープが指定されている');
-        $this->assertEquals($article->id, $logs[2]->scope_id, 'スコープが指定されている');
-        $this->assertSame('Elastic/ActivityLogger.Users', $logs[2]->issuer_model, '発行者が指定されている');
-        $this->assertEquals($user->id, $logs[2]->issuer_id, '発行者が指定されている');
+        $this->assertSame('Elastic/ActivityLogger.Articles', $logs[2]->scope_model, 'will set scope model');
+        $this->assertEquals($article->id, $logs[2]->scope_id, 'will set scope id');
+        $this->assertSame('Elastic/ActivityLogger.Users', $logs[2]->issuer_model, 'will set issuer model');
+        $this->assertEquals($user->id, $logs[2]->issuer_id, 'will set issuer id');
         $this->assertSame('Elastic/ActivityLogger.Comments', $logs[2]->object_model);
         $this->assertEquals('2', $logs[2]->object_id);
         $this->assertSame($message, $logs[2]->message);
@@ -433,7 +433,7 @@ class LoggerBehaviorTest extends TestCase
             return $message;
         });
 
-        // 記事を新規作成
+        // Create new article
         $author = $this->Authors->get(1);
         $article = $this->Articles->newEntity([
             'title' => 'バージョン1.0リリース',
@@ -443,14 +443,14 @@ class LoggerBehaviorTest extends TestCase
         $this->Articles->setLogIssuer($author);
         $this->Articles->save($article);
 
-        // 記事を更新
+        // Update the article
         $article->title = 'バージョン1.0 stableリリース';
         $this->Articles->save($article);
 
-        // 任意のログ
+        // Record custom log
         $this->Articles->activityLog(LogLevel::NOTICE, '記事を更新しています。');
 
-        // 別のユーザーが削除
+        // Deleting by another user
         $this->Articles->setLogIssuer($this->Authors->get(2));
         $this->Articles->delete($article);
 
@@ -495,7 +495,7 @@ class LoggerBehaviorTest extends TestCase
             return $message;
         });
 
-        // 記事を新規作成
+        // Create new article
         $author = $this->Authors->get(1);
         $article = $this->Articles->newEntity([
             'title' => 'バージョン1.0リリース',
@@ -505,14 +505,14 @@ class LoggerBehaviorTest extends TestCase
         $this->Articles->setLogIssuer($author);
         $this->Articles->save($article);
 
-        // 記事を更新
+        // Update the article
         $article->title = 'バージョン1.0 stableリリース';
         $this->Articles->save($article);
 
-        // 任意のログ
+        // Record custom log
         $this->Articles->activityLog(LogLevel::NOTICE, '記事を更新しています。');
 
-        // 別のユーザーが削除
+        // Deleting by another user
         $this->Articles->setLogIssuer($this->Authors->get(2));
         $this->Articles->delete($article);
 
@@ -534,7 +534,7 @@ class LoggerBehaviorTest extends TestCase
         $author = $this->Authors->get(1);
         $this->Articles->setLogIssuer($author);
 
-        // 記事を新規作成
+        // Create new article
         $this->Articles->setLogMessage('custom message');
         $article = $this->Articles->newEntity([
             'title' => 'バージョン1.0リリース',
@@ -543,15 +543,15 @@ class LoggerBehaviorTest extends TestCase
         ]);
         $this->Articles->save($article);
 
-        // 記事を更新
+        // Update the article
         $article->title = 'バージョン1.0 stableリリース';
         $this->Articles->save($article);
 
-        // 記事を更新
+        // Update the article
         $this->Articles->setLogMessage('persist custom message', true);
         $article->title = 'バージョン1.0.0 stableリリース';
         $this->Articles->save($article);
-        // 記事を削除
+        // Delete the article
         $this->Articles->delete($article);
 
         $logs = $this->ActivityLogs->find()
@@ -562,9 +562,9 @@ class LoggerBehaviorTest extends TestCase
 
         $this->assertCount(4, $logs);
         $this->assertSame('custom message', $logs[0]->message);
-        $this->assertSame('', $logs[1]->message, 'setLogMessageでセットしたメッセージは何らかのログ記録が発生したらリセットされる');
+        $this->assertSame('', $logs[1]->message, 'reset message that set from `setLogMessage`, when any log recorded');
         $this->assertSame('persist custom message', $logs[2]->message);
-        $this->assertSame('persist custom message', $logs[3]->message, 'persistフラグをセットしたメッセージは維持される');
+        $this->assertSame('persist custom message', $logs[3]->message, 'keep message, when persist flag is true');
     }
 
     public function testFindActivity()
@@ -593,7 +593,7 @@ class LoggerBehaviorTest extends TestCase
             ->all()
             ->toArray();
         $this->assertCount(2, $articleLogs);
-        $this->assertSame('Elastic/ActivityLogger.Comments', $articleLogs[0]->object_model, '最新のものが上に表示される');
+        $this->assertSame('Elastic/ActivityLogger.Comments', $articleLogs[0]->object_model, 'The latest one is displayed above');
         $this->assertSame('Elastic/ActivityLogger.Articles', $articleLogs[1]->object_model);
         $commentLogs = $this->Comments->find('activity', ['scope' => $comment])
             ->all()
