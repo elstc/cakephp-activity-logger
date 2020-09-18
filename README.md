@@ -1,6 +1,6 @@
 # ActivityLogger plugin for CakePHP 4.x
 
-<p align="center">
+<p style="text-align: center">
     <a href="LICENSE.txt" target="_blank">
         <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
     </a>
@@ -107,7 +107,7 @@ $this->Articles->save($artice);
 
 #### AutoIssuerComponent
 
-If you using `AuthComponent`, the `AutoIssuerComponent` will help set issuer to Tables.
+If you using `Authorization` plugin or `AuthComponent`, the `AutoIssuerComponent` will help set issuer to Tables.
 
 ```php
 // In AppController
