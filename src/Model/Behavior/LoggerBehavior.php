@@ -39,7 +39,7 @@ use Psr\Log\LogLevel;
  *
  * set Scope/Issuer
  * <pre><code>
- * $commentsTable->logScope([$artice, $author])->logIssuer($user);
+ * $commentsTable->setLogScope([$artice, $author])->setLogScope($user);
  * </code></pre>
  */
 class LoggerBehavior extends Behavior
@@ -69,7 +69,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * Table.initializeの後に実行
+     * Run at after Table.initialize event
      *
      * @param Event $event the event
      * @return void
@@ -132,7 +132,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログスコープの取得
+     * Get the log scope
      *
      * @return array
      */
@@ -142,9 +142,9 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログスコープの設定
+     * Set the log scope
      *
-     * @param mixed $args if $args === false リセット
+     * @param mixed $args if $args = false then reset the scope
      * @return void
      */
     public function setLogScope($args)
@@ -171,9 +171,9 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログスコープの設定
+     * Set or get the scope
      *
-     * @param mixed $args if $args === false リセット
+     * @param mixed $args if $args = false then reset the scope
      * @return Table|array
      * @deprecated 1.2.0 use setLogScope()/getLogScope() instead.
      */
@@ -190,7 +190,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログ発行者の取得
+     * Get the log issuer
      *
      * @return array
      */
@@ -200,7 +200,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログ発行者の設定
+     * Set the log issuer
      *
      * @param Entity $issuer the issuer
      * @return void
@@ -209,7 +209,7 @@ class LoggerBehavior extends Behavior
     {
         $this->setConfig('issuer', $issuer);
 
-        // scopeに含む場合、併せてscopeにセット
+        // set issuer to scope, if the scopes contain the issuer's model
         list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
         if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
             $this->setLogScope($issuer);
@@ -217,7 +217,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログ発行者の設定
+     * Set or get the log issuer
      *
      * @param Entity $issuer the issuer
      * @return Table
@@ -232,7 +232,7 @@ class LoggerBehavior extends Behavior
         // setter
         $this->setConfig('issuer', $issuer);
 
-        // scopeに含む場合、併せてscopeにセット
+        // set issuer to scope, if the scopes contain the issuer's model
         list($issuerModel, $issuerId) = $this->buildObjectParameter($this->getConfig('issuer'));
         if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
             $this->setLogScope($issuer);
@@ -242,7 +242,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * メッセージ生成メソッドの取得
+     * Get the log message builder
      *
      * @return callable|null
      */
@@ -252,7 +252,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * メッセージ生成メソッドの設定
+     * Set the log message builder
      *
      * @param callable $handler the message build method
      * @return void
@@ -263,7 +263,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * メッセージ生成メソッドの設定
+     * Set or get the log message builder
      *
      * @param callable $handler the message build method
      * @return callable|void
@@ -280,7 +280,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * メッセージのセット
+     * Set a log message
      *
      * @param string $message the message
      * @param bool $persist if true, keeps the message.
@@ -298,7 +298,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * カスタムログの記述
+     * Record a custom log
      *
      * @param string $level log level
      * @param string $message log message
@@ -327,7 +327,7 @@ class LoggerBehavior extends Behavior
         /** @noinspection SuspiciousAssignmentsInspection */
         $log->message = $this->buildMessage($log, $entity, $issuer);
 
-        // issuerをscopeに含む場合、併せてscopeにセット
+        // set issuer to scope, if the scopes contain the issuer's model
         if (!empty($log->issuer_id) && array_key_exists($log->issuer_model, $this->getConfig('scope'))) {
             $scope[$log->issuer_model] = $log->issuer_id;
         }
@@ -340,7 +340,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * カスタムログの記述
+     * Record a custom log
      *
      * @param string $level log level
      * @param string $message log message
@@ -361,7 +361,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * アクティビティログの取得
+     * Activity log finder
      *
      * $table->find('activity', ['scope' => $entity])
      *
@@ -388,7 +388,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログを作成
+     * Build log entity
      *
      * @param EntityInterface $entity the entity
      * @param EntityInterface $issuer the issuer
@@ -410,7 +410,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * エンティティからパラメータの取得
+     * Build parameter from an entity
      *
      * @param EntityInterface $object the object
      * @return array [object_model, object_id]
@@ -422,7 +422,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * メッセージの生成
+     * Build log message
      *
      * @param ActivityLog $log log object
      * @param EntityInterface $entity saved entity
@@ -440,7 +440,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * ログデータをスコープに応じて複製
+     * Duplicate the log by scopes
      *
      * @param array $scope target scope
      * @param ActivityLog $log duplicate logs
@@ -452,7 +452,7 @@ class LoggerBehavior extends Behavior
         $logs = [];
 
         if ($entity !== null) {
-            // フィールド値から自動マッピング
+            // Auto mapping from fields
             foreach ($this->getConfig('scopeMap') as $field => $scopeModel) {
                 if (array_key_exists($scopeModel, $scope) && !empty($entity->get($field))) {
                     $scope[$scopeModel] = $entity->get($field);
@@ -462,7 +462,7 @@ class LoggerBehavior extends Behavior
 
         foreach ($scope as $scopeModel => $scopeId) {
             if ($entity !== null && $scopeModel === $this->_table->getRegistryAlias()) {
-                // モデル自身に対する更新の場合は、entityのidをセットする
+                // Set the entity id to scope, if own scope
                 $scopeId = $this->getLogTable()->getScopeId($this->_table, $entity);
             }
             if (empty($scopeId)) {
@@ -510,9 +510,9 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * エンティティ変更値の取得
+     * Get modified values from the entity
      *
-     * hiddenに設定されたものは除く
+     * - exclude hidden values
      *
      * @param EntityInterface $entity the entity
      * @return array
@@ -533,9 +533,9 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * エンティティ値の取得
+     * Get values from the entity
      *
-     * hiddenに設定されたものは除く
+     * - exclude hidden values
      *
      * @param EntityInterface $entity the entity
      * @return array
