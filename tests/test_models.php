@@ -82,6 +82,7 @@ namespace Elastic\ActivityLogger\Model\Table {
     use Cake\ORM\Association\HasMany;
     use Cake\ORM\Table;
     use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
+    use Elastic\ActivityLogger\Model\Entity\ActivityLog;
     use Elastic\ActivityLogger\Model\Entity\Article;
     use Elastic\ActivityLogger\Model\Entity\Author;
     use Elastic\ActivityLogger\Model\Entity\Comment;
@@ -172,6 +173,17 @@ namespace Elastic\ActivityLogger\Model\Table {
                     'Elastic/ActivityLogger.Users',
                 ],
             ]);
+        }
+    }
+
+    /**
+     */
+    class AlterActivityLogsTable extends ActivityLogsTable
+    {
+        public function initialize(array $config): void
+        {
+            $this->setTable('activity_logs');
+            $this->setEntityClass(ActivityLog::class);
         }
     }
 }

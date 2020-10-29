@@ -7,6 +7,7 @@ use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
+use Elastic\ActivityLogger\Model\Table\AlterActivityLogsTable;
 use Psr\Log\LogLevel;
 
 /**
@@ -607,5 +608,16 @@ class LoggerBehaviorTest extends TestCase
             ->toArray();
         $this->assertCount(1, $userLogs);
         $this->assertSame('Elastic/ActivityLogger.Comments', $userLogs[0]->object_model);
+    }
+
+    public function testAnotherLogModel()
+    {
+        $this->Users->activityLog(LogLevel::DEBUG, 'test log');
+
+        $this->Logger->setConfig('logModel', AlterActivityLogsTable::class);
+        $this->Logger->setConfig('logModelAlias', 'AlterActivityLogs');
+        $this->Logger->activityLog(LogLevel::DEBUG, 'alter test log');
+
+        $this->assertTrue(true, 'Do not throws any exception');
     }
 }

@@ -49,6 +49,7 @@ class LoggerBehavior extends Behavior
      */
     protected $_defaultConfig = [
         'logModel' => 'Elastic/ActivityLogger.ActivityLogs',
+        'logModelAlias' => 'ActivityLogs',
         'scope' => [],
         'systemScope' => true,
         'scopeMap' => [],
@@ -424,7 +425,7 @@ class LoggerBehavior extends Behavior
      */
     private function getLogTable()
     {
-        return $this->getTableLocator()->get('ActivityLogs', [
+        return $this->getTableLocator()->get($this->getConfig('logModelAlias'), [
             'className' => $this->getConfig('logModel'),
         ]);
     }
