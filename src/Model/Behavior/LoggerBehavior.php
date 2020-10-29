@@ -13,7 +13,6 @@ use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
 use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
 use Psr\Log\LogLevel;
@@ -498,15 +497,25 @@ class LoggerBehavior extends Behavior
      */
     private function getLogTable()
     {
+        return $this->getTable('ActivityLogs', [
+            'className' => $this->getConfig('logModel'),
+        ]);
+    }
+
+    /**
+     * @param string $alias The alias name you want to get.
+     * @param array $options The options you want to build the table with.
+     * @return \Cake\Orm\Table
+     */
+    private function getTable($alias, $config = [])
+    {
         if (method_exists($this, 'getTableLocator')) {
             $tableLocator = $this->getTableLocator();
         } else {
             $tableLocator = $this->tableLocator();
         }
 
-        return $tableLocator->get('ActivityLogs', [
-            'className' => $this->getConfig('logModel'),
-        ]);
+        return $tableLocator->get($alias, $config);
     }
 
     /**
@@ -588,7 +597,7 @@ class LoggerBehavior extends Behavior
             } elseif (is_string($arg)) {
                 $new[$arg] = null;
             } elseif ($arg instanceof Entity) {
-                $table = TableRegistry::get($arg->getSource());
+                $table = $this->getTable($arg->getSource());
                 $scopeId = $this->getLogTable()->getScopeId($table, $arg);
                 $new[$table->getRegistryAlias()] = $scopeId;
             }
