@@ -57,6 +57,21 @@ class LoggerBehavior extends Behavior
         'scope' => [],
         'systemScope' => true,
         'scopeMap' => [],
+        'implementedMethods' => [
+            'activityLog' => 'activityLog',
+            'getLogIssuer' => 'getLogIssuer',
+            'getLogMessageBuilder' => 'getLogMessageBuilder',
+            'getLogScope' => 'getLogScope',
+            'setLogIssuer' => 'setLogIssuer',
+            'setLogMessageBuilder' => 'setLogMessageBuilder',
+            'setLogMessage' => 'setLogMessage',
+            'setLogScope' => 'setLogScope',
+            // deprecated methods
+            'log' => 'log',
+            'logIssuer' => 'logIssuer',
+            'logMessageBuilder' => 'logMessageBuilder',
+            'logScope' => 'logScope',
+        ],
     ];
 
     /**
