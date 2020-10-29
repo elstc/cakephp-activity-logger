@@ -65,6 +65,11 @@ class LoggerBehavior extends Behavior
             'setLogMessageBuilder' => 'setLogMessageBuilder',
             'setLogMessage' => 'setLogMessage',
             'setLogScope' => 'setLogScope',
+            // deprecated methods
+            'log' => 'log',
+            'logIssuer' => 'logIssuer',
+            'logMessageBuilder' => 'logMessageBuilder',
+            'logScope' => 'logScope',
         ],
     ];
 
