@@ -1,0 +1,165 @@
+name: CakePHP Plugin CI
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - '*'
+  schedule:
+    - cron: "0 7 1 * *"
+      branches:
+        - master
+
+jobs:
+  testsuite:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        cakephp-version: ['4.1.*', '4.2.*']
+        php-version: ['7.2', '7.4']
+        db-type: ['mysql']
+        prefer-lowest: ['']
+        coverage: ['no']
+        include:
+          - cakephp-version: '4.0.*'
+            php-version: '7.2'
+            db-type: 'mysql:5.6'
+            prefer-lowest: ''
+            coverage: 'no'
+          - cakephp-version: '4.0.*'
+            php-version: '7.3'
+            db-type: 'mysql'
+            prefer-lowest: ''
+            coverage: 'no'
+
+          - php-version: '7.4'
+            cakephp-version: '4.2.*'
+            db-type: 'mysql'
+            prefer-lowest: ''
+            coverage: 'coverage'
+
+    steps:
+      - name: Setup MySQL latest
+        if: matrix.db-type == 'mysql'
+        run: docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cakephp -p 3306:3306 -d mysql --default-authentication-plugin=mysql_native_password --disable-log-bin
+
+      - name: Setup MySQL 5.6
+        if: matrix.db-type == 'mysql:5.6'
+        run: docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cakephp -p 3306:3306 -d mysql:5.6 --character-set-server=utf8
+
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, intl, apcu, sqlite, pdo_mysql pdo_sqlite
+          ini-values: apc.enable_cli = 1
+          coverage: xdebug
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Get date part for cache key
+        id: key-date
+        run: echo "::set-output name=date::$(date +'%Y-%m')"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
+
+      - name: Install packages
+        run: |
+          sudo locale-gen da_DK.UTF-8
+          sudo locale-gen de_DE.UTF-8
+
+      - name: Change CakePHP version
+        run: |
+          composer require cakephp/cakephp:${{ matrix.cakephp-version }}
+
+      - name: composer install
+        run: |
+          if ${{ matrix.prefer-lowest == 'prefer-lowest' }}; then
+            composer update --prefer-lowest --prefer-stable
+          else
+            composer update
+          fi
+
+      - name: Setup problem matchers for PHPUnit
+        if: matrix.php-version == '7.4' && matrix.db-type == 'mysql'
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Run PHPUnit
+        env:
+          REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
+          MEMCACHED_PORT: ${{ job.services.memcached.ports['11211'] }}
+        run: |
+          if [[ ${{ matrix.db-type }} == 'sqlite' ]]; then export db_dsn='sqlite:///:memory:'; fi
+          if [[ ${{ matrix.db-type }} == 'mysql' ]]; then export db_dsn='mysql://root:root@127.0.0.1/cakephp?init[]=SET sql_mode = "STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"'; fi
+          if [[ ${{ matrix.db-type }} == 'mysql:5.6' ]]; then export db_dsn='mysql://root:root@127.0.0.1/cakephp?encoding=utf8'; fi
+
+          if [[ ${{ matrix.coverage }} == 'coverage' ]]; then
+            export CODECOVERAGE=1 && vendor/bin/phpunit --stderr --verbose --coverage-clover=coverage.xml
+          else
+            vendor/bin/phpunit --stderr
+          fi
+
+      - name: Submit code coverage
+        if: matrix.coverage == 'coverage'
+        uses: codecov/codecov-action@v1
+
+  cs-stan:
+    name: Coding Standard & Static Analysis
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.2'
+          extensions: mbstring, intl, apcu
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Get date part for cache key
+        id: key-date
+        run: echo "::set-output name=date::$(date +'%Y-%m')"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
+
+      - name: Get CodeSniffer
+        run: composer require cakephp/cakephp-codesniffer:^4.0
+#
+#      - name: composer install
+#        run: composer stan-setup
+
+      - name: Run PHP CodeSniffer
+        run: vendor/bin/phpcs --report=checkstyle -p --extensions=php --standard=vendor/cakephp/cakephp-codesniffer/CakePHP src/ tests/
+#
+#      - name: Run psalm
+#        if: success() || failure()
+#        run: vendor/bin/psalm.phar --output-format=github
+#
+#      - name: Run phpstan
+#        if: success() || failure()
+#        run: vendor/bin/phpstan.phar analyse --error-format=github
