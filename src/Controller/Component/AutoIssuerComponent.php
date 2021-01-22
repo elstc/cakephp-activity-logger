@@ -11,6 +11,7 @@ use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Locator\LocatorInterface;
 use Cake\ORM\Table;
+use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 
 /**
@@ -156,7 +157,11 @@ class AutoIssuerComponent extends Component
         }
 
         // set issuer to the model, if logged in user can get
-        if (!empty($this->issuer) && $table->behaviors()->hasMethod('setLogIssuer')) {
+        if (
+            !empty($this->issuer) &&
+            $table->behaviors()->hasMethod('setLogIssuer') &&
+            TableRegistry::exists($this->issuer->getSource())
+        ) {
             $table->setLogIssuer($this->issuer);
         }
     }
