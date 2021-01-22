@@ -277,4 +277,36 @@ class AutoIssuerComponentTest extends TestCase
         $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
         $this->assertSame(1, $this->Authors->getLogIssuer()->id);
     }
+
+    /**
+     * Test Model.initialize Event hook
+     *
+     * @return void
+     */
+    public function testOnInitializeModelAtClearTableLocator()
+    {
+        // -- Set issuer to AutoIssuerComponent
+        // Create AuthComponent mock
+        $auth = $this->getMockBuilder(AuthComponent::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['user'])
+            ->getMock();
+        $auth->method('user')
+            ->willReturn([
+                'id' => 1,
+            ]);
+        $this->registry->set('Auth', $auth);
+
+        // Dispatch Controller.startup Event
+        $event = new Event('Controller.startup');
+        $result = EventManager::instance()->dispatch($event);
+        // --
+
+        // clear TableRegistry
+        $this->getTableLocator()->clear();
+        $this->Articles = $this->getTableLocator()->get('Elastic/ActivityLogger.Articles');
+
+        // will not set issuer
+        $this->assertNull($this->Articles->getLogIssuer());
+    }
 }
