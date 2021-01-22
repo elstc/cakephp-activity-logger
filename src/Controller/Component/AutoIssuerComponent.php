@@ -162,7 +162,8 @@ class AutoIssuerComponent extends Component
         }
 
         // set issuer to the model, if logged in user can get
-        if (!empty($this->issuer) &&
+        if (
+            !empty($this->issuer) &&
             $table->behaviors()->hasMethod('setLogIssuer') &&
             $this->getTableLocator()->exists($this->issuer->getSource())
         ) {
