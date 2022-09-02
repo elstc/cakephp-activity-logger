@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Cake\Cache\Cache;
 use Cake\I18n\FrozenTime;
 use Cake\I18n\Time;
 
@@ -30,6 +31,7 @@ $here = __DIR__;
 chdir($root);
 require $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
 
+Cache::clearAll();
 FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 

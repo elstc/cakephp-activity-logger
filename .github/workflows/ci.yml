@@ -111,6 +111,11 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
 
+      - name: Install packages
+        run: |
+          sudo locale-gen da_DK.UTF-8
+          sudo locale-gen de_DE.UTF-8
+
       - name: Change CakePHP version
         run: |
           composer require cakephp/cakephp:${{ matrix.cakephp-version }}
