@@ -231,11 +231,33 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testOnAfterIdentify(): void
+    public function testOnAuthAfterIdentify(): void
     {
         // Dispatch Auth.afterIdentify Event
         $event = new Event('Auth.afterIdentify');
         $event->setData([['id' => 2], new BasicAuthenticate($this->registry)]);
+        EventManager::instance()->dispatch($event);
+
+        // The model defined in `initializedTables` will set an issuer
+        $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
+        $this->assertSame(2, $this->Articles->getLogIssuer()->id);
+        $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
+        $this->assertSame(2, $this->Comments->getLogIssuer()->id);
+
+        // The model undefined in `initializedTables` not set the issuer
+        $this->assertNull($this->Authors->getLogIssuer());
+    }
+
+    /**
+     * Test AuthComponent Auth.afterIdentify Event hook
+     *
+     * @return void
+     */
+    public function testOnAuthenticationAfterIdentify(): void
+    {
+        // Dispatch Authentication.afterIdentify Event
+        $event = new Event('Authentication.afterIdentify');
+        $event->setData(['identity' => new \ArrayObject(['id' => 2])]);
         EventManager::instance()->dispatch($event);
 
         // The model defined in `initializedTables` will set an issuer

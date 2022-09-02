@@ -22,8 +22,6 @@ use Cake\Utility\Hash;
  *  'identityAttribute': The request attribute used to store the identity.
  *  'initializedTables': If there is load to the Table class before the execution of `Controller.startup` event,
  *                       please describe here.
- *
- * @todo support Authentication plugin
  */
 class AutoIssuerComponent extends Component
 {
@@ -73,7 +71,8 @@ class AutoIssuerComponent extends Component
         EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
 
         return parent::implementedEvents() + [
-                'Auth.afterIdentify' => 'onAfterIdentify',
+                'Auth.afterIdentify' => 'onAfterIdentifyAtAuth',
+                'Authentication.afterIdentify' => 'onAfterIdentifyAtAuthentication',
             ];
     }
 
@@ -122,11 +121,36 @@ class AutoIssuerComponent extends Component
      * @return void
      * @noinspection PhpUnused
      */
-    public function onAfterIdentify(Event $event): void
+    public function onAfterIdentifyAtAuth(Event $event): void
     {
         /** @var array $user */
         [$user] = $event->getData();
         $this->issuer = $this->getIssuerFromUserArray($user);
+
+        if (!$this->issuer) {
+            // not logged in
+            return;
+        }
+
+        // register issuer to the model
+        $this->setIssuerToAllModel($this->issuer);
+    }
+
+    /**
+     * on Authentication.afterIdentify
+     *
+     * - get issuer from event data
+     * - register issuer to the model
+     *
+     * @param \Cake\Event\Event $event the Event
+     * @return void
+     * @noinspection PhpUnused
+     */
+    public function onAfterIdentifyAtAuthentication(Event $event): void
+    {
+        /** @var \ArrayAccess $identity */
+        $identity = $event->getData()['identity'] ?? null;
+        $this->issuer = $this->getIssuerFromUserArray($identity);
 
         if (!$this->issuer) {
             // not logged in
@@ -189,7 +213,6 @@ class AutoIssuerComponent extends Component
     {
         foreach ($this->tables as $table) {
             if ($table->behaviors()->hasMethod('setLogIssuer')) {
-                /** @noinspection PhpUndefinedMethodInspection */
                 $table->setLogIssuer($issuer);
             }
         }
