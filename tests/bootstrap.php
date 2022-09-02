@@ -34,5 +34,3 @@ FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 
 error_reporting(E_ALL);
-
-require $here . '/test_models.php';

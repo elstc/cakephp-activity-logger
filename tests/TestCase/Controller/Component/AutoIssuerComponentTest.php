@@ -12,7 +12,10 @@ use Cake\Event\EventManager;
 use Cake\Http\ServerRequest;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent;
-use Elastic\ActivityLogger\Model\Entity\User;
+use TestApp\Model\Entity\User;
+use TestApp\Model\Table\ArticlesTable;
+use TestApp\Model\Table\AuthorsTable;
+use TestApp\Model\Table\CommentsTable;
 
 /**
  * Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent Test Case
@@ -39,17 +42,17 @@ class AutoIssuerComponentTest extends TestCase
     private $registry;
 
     /**
-     * @var \Elastic\ActivityLogger\Model\Table\AuthorsTable
+     * @var \TestApp\Model\Table\AuthorsTable
      */
     private $Authors;
 
     /**
-     * @var \Elastic\ActivityLogger\Model\Table\ArticlesTable
+     * @var \TestApp\Model\Table\ArticlesTable
      */
     private $Articles;
 
     /**
-     * @var \Elastic\ActivityLogger\Model\Table\CommentsTable
+     * @var \TestApp\Model\Table\CommentsTable
      */
     private $Comments;
 
@@ -67,17 +70,17 @@ class AutoIssuerComponentTest extends TestCase
     {
         parent::setUp();
 
-        $this->Authors = $this->getTableLocator()->get('Elastic/ActivityLogger.Authors');
-        $this->Articles = $this->getTableLocator()->get('Elastic/ActivityLogger.Articles');
-        $this->Comments = $this->getTableLocator()->get('Elastic/ActivityLogger.Comments');
+        $this->Authors = $this->getTableLocator()->get('TestApp.Authors', ['className' => AuthorsTable::class]);
+        $this->Articles = $this->getTableLocator()->get('TestApp.Articles', ['className' => ArticlesTable::class]);
+        $this->Comments = $this->getTableLocator()->get('TestApp.Comments', ['className' => CommentsTable::class]);
 
         $this->request = $this->createMock(ServerRequest::class);
         $this->registry = new ComponentRegistry(new Controller($this->request));
         $this->AutoIssuer = new AutoIssuerComponent($this->registry, [
-            'userModel' => 'Elastic/ActivityLogger.Users',
+            'userModel' => 'TestApp.Users',
             'initializedTables' => [
-                'Elastic/ActivityLogger.Articles',
-                'Elastic/ActivityLogger.Comments',
+                'TestApp.Articles',
+                'TestApp.Comments',
             ],
         ]);
 
@@ -101,7 +104,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testInitialization()
+    public function testInitialization(): void
     {
         // Check default config value
         $component = new AutoIssuerComponent($this->registry);
@@ -116,7 +119,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testStartupWithAuthenticationPlugin()
+    public function testStartupWithAuthenticationPlugin(): void
     {
         // Set identity
         $this->request
@@ -145,7 +148,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testStartupWithNotAuthenticated()
+    public function testStartupWithNotAuthenticated(): void
     {
         // Set identity
         $this->request
@@ -170,7 +173,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testStartupWithAuthComponent()
+    public function testStartupWithAuthComponent(): void
     {
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
@@ -202,7 +205,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testStartupWithAuthComponentNotAuthenticated()
+    public function testStartupWithAuthComponentNotAuthenticated(): void
     {
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
@@ -228,7 +231,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testOnAfterIdentify()
+    public function testOnAfterIdentify(): void
     {
         // Dispatch Auth.afterIdentify Event
         $event = new Event('Auth.afterIdentify');
@@ -250,7 +253,7 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testOnInitializeModel()
+    public function testOnInitializeModel(): void
     {
         // -- Set issuer to AutoIssuerComponent
         // Create AuthComponent mock
@@ -270,8 +273,10 @@ class AutoIssuerComponentTest extends TestCase
         // --
 
         // reload Table
-        $this->getTableLocator()->remove('Elastic/ActivityLogger.Authors');
-        $this->Authors = $this->getTableLocator()->get('Elastic/ActivityLogger.Authors');
+        $this->getTableLocator()->remove('TestApp.Authors');
+        $this->Authors = $this->getTableLocator()->get('TestApp.Authors', [
+            'className' => AuthorsTable::class,
+        ]);
 
         // will set issuer
         $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
@@ -283,13 +288,13 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @return void
      */
-    public function testOnInitializeModelAtClearTableLocator()
+    public function testOnInitializeModelAtClearTableLocator(): void
     {
         // -- Set issuer to AutoIssuerComponent
         // Create AuthComponent mock
         $auth = $this->getMockBuilder(AuthComponent::class)
             ->disableOriginalConstructor()
-            ->setMethods(['user'])
+            ->onlyMethods(['user'])
             ->getMock();
         $auth->method('user')
             ->willReturn([
@@ -299,12 +304,14 @@ class AutoIssuerComponentTest extends TestCase
 
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
-        $result = EventManager::instance()->dispatch($event);
+        EventManager::instance()->dispatch($event);
         // --
 
         // clear TableRegistry
         $this->getTableLocator()->clear();
-        $this->Articles = $this->getTableLocator()->get('Elastic/ActivityLogger.Articles');
+        $this->Articles = $this->getTableLocator()->get('Articles', [
+            'className' => ArticlesTable::class,
+        ]);
 
         // will not set issuer
         $this->assertNull($this->Articles->getLogIssuer());

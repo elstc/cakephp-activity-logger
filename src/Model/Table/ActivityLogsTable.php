@@ -8,13 +8,14 @@ use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Entity;
 use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
 /**
  * ActivityLogs Model
+ *
+ * @method \Elastic\ActivityLogger\Model\Entity\ActivityLog get($primaryKey, array $options = [])
  */
 class ActivityLogsTable extends Table
 {
@@ -36,12 +37,12 @@ class ActivityLogsTable extends Table
     /**
      * Add data type
      *
-     * @param \Cake\Database\Schema\TableSchemaInterface $table the table
+     * @param \Cake\Database\Schema\TableSchemaInterface $schema the table
      * @return \Cake\Database\Schema\TableSchemaInterface
      */
-    protected function _initializeSchema(TableSchemaInterface $table): TableSchemaInterface
+    protected function _initializeSchema(TableSchemaInterface $schema): TableSchemaInterface
     {
-        $schema = parent::_initializeSchema($table);
+        $schema = parent::_initializeSchema($schema);
         $schema->setColumnType('data', 'json');
 
         return $schema;
@@ -88,19 +89,7 @@ class ActivityLogsTable extends Table
     }
 
     /**
-     * Returns a rules checker object that will be used for validating
-     * application integrity.
-     *
-     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
-     * @return \Cake\ORM\RulesChecker
-     */
-    public function buildRules(RulesChecker $rules): RulesChecker
-    {
-        return $rules;
-    }
-
-    /**
-     * スコープの指定
+     * find by scope
      *
      * $table->find('scope', ['scope' => $entity])
      *
@@ -108,7 +97,7 @@ class ActivityLogsTable extends Table
      * @param array $options query options
      * @return \Cake\ORM\Query
      */
-    public function findScope(Query $query, array $options)
+    public function findScope(Query $query, array $options): Query
     {
         if (empty($options['scope'])) {
             return $query;
@@ -135,8 +124,9 @@ class ActivityLogsTable extends Table
      * @param \Cake\ORM\Query $query the Query
      * @param array $options query options
      * @return \Cake\ORM\Query
+     * @noinspection PhpUnused
      */
-    public function findSystem(Query $query, array $options)
+    public function findSystem(Query $query, array $options): Query
     {
         $options['scope'] = '\\' . Configure::read('App.namespace');
 
@@ -151,8 +141,9 @@ class ActivityLogsTable extends Table
      * @param \Cake\ORM\Query $query the Query
      * @param array $options query options
      * @return \Cake\ORM\Query
+     * @noinspection PhpUnused
      */
-    public function findIssuer(Query $query, array $options)
+    public function findIssuer(Query $query, array $options): Query
     {
         if (empty($options['issuer'])) {
             return $query;
@@ -172,14 +163,14 @@ class ActivityLogsTable extends Table
     /**
      * Build parameter from an entity
      *
-     * @param \Cake\Datasource\EntityInterface|null $object a entity
+     * @param \Cake\Datasource\EntityInterface|null $object an entity
      * @return array [object_model, object_id]
      */
-    public function buildObjectParameter(?EntityInterface $object)
+    public function buildObjectParameter(?EntityInterface $object): array
     {
         $objectModel = null;
         $objectId = null;
-        if ($object && $object instanceof Entity) {
+        if ($object instanceof Entity) {
             $objectTable = TableRegistry::getTableLocator()->get($object->getSource());
             $objectModel = $objectTable->getRegistryAlias();
             $objectId = $this->getScopeId($objectTable, $object);
@@ -194,7 +185,7 @@ class ActivityLogsTable extends Table
      * if composite primary key, it will return concatenate values
      *
      * @param \Cake\ORM\Table $table target table
-     * @param \Cake\Datasource\EntityInterface $entity a entity
+     * @param \Cake\Datasource\EntityInterface $entity an entity
      * @return string|int
      */
     public function getScopeId(Table $table, EntityInterface $entity)
