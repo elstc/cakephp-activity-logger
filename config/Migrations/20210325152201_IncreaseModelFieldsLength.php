@@ -12,7 +12,7 @@ class IncreaseModelFieldsLength extends AbstractMigration
 
     public function up()
     {
-        $table = $this->table('activity_logs', ['id' => false, 'collation' => 'utf8_general_ci']);
+        $table = $this->table('activity_logs', ['id' => false, 'collation' => 'utf8mb4_general_ci']);
         $table
             ->changeColumn('scope_model', 'string', [
                 'default' => null,
@@ -34,7 +34,7 @@ class IncreaseModelFieldsLength extends AbstractMigration
 
     public function down()
     {
-        $table = $this->table('activity_logs', ['id' => false, 'collation' => 'utf8_general_ci']);
+        $table = $this->table('activity_logs', ['id' => false, 'collation' => 'utf8mb4_general_ci']);
         $table
             ->changeColumn('scope_model', 'string', [
                 'default' => null,

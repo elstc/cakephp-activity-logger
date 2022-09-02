@@ -17,8 +17,8 @@ class ArticlesFixture extends TestFixture
     public $fields = [
         'id' => ['type' => 'integer'],
         'author_id' => ['type' => 'integer', 'null' => true],
-        'title' => ['type' => 'string', 'null' => true],
-        'body' => 'text',
+        'title' => ['type' => 'string', 'null' => true, 'collation' => 'utf8mb4_general_ci'],
+        'body' => ['type' => 'text', 'null' => true, 'collation' => 'utf8mb4_general_ci'],
         'published' => ['type' => 'string', 'length' => 1, 'default' => 'N'],
         '_constraints' => ['primary' => ['type' => 'primary', 'columns' => ['id']]],
     ];

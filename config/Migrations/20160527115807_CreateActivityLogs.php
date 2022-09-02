@@ -7,7 +7,7 @@ class CreateActivityLogs extends AbstractMigration
 
     public function change()
     {
-        $table = $this->table('activity_logs', ['id' => false, 'collation' => 'utf8_general_ci'])
+        $table = $this->table('activity_logs', ['id' => false, 'collation' => 'utf8mb4_general_ci'])
             ->addColumn('id', 'biginteger', [
                 'autoIncrement' => true,
                 'limit'         => 20,

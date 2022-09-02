@@ -18,7 +18,7 @@ class CommentsFixture extends TestFixture
         'id' => ['type' => 'integer'],
         'article_id' => ['type' => 'integer', 'null' => false],
         'user_id' => ['type' => 'integer', 'null' => false],
-        'comment' => ['type' => 'text'],
+        'comment' => ['type' => 'text', 'collation' => 'utf8mb4_general_ci'],
         'published' => ['type' => 'string', 'length' => 1, 'default' => 'N'],
         'created' => ['type' => 'datetime'],
         'updated' => ['type' => 'datetime'],
