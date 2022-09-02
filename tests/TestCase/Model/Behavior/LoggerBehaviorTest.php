@@ -34,8 +34,6 @@ class LoggerBehaviorTest extends TestCase
         'plugin.Elastic/ActivityLogger.Users',
     ];
 
-    public $dropTables = true;
-
     public function setUp(): void
     {
         parent::setUp();

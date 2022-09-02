@@ -86,7 +86,7 @@ class LoggerBehavior extends Behavior
         $scope = $this->getConfig('scope');
 
         if (empty($scope)) {
-            $scope = [$this->getTable()->getRegistryAlias()];
+            $scope = [$this->_table->getRegistryAlias()];
         }
 
         if ($this->getConfig('systemScope')) {
@@ -489,7 +489,7 @@ class LoggerBehavior extends Behavior
     {
         $this->setConfig('scope', $this->getConfig('originalScope'), false);
 
-        return $this->getTable();
+        return $this->_table;
     }
 
     /**
