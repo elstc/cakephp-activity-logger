@@ -7,11 +7,11 @@ use Cake\ORM\Table;
 use TestApp\Model\Entity\Comment;
 
 /**
- * @param ArticlesTable&BelongsTo $Articles
- * @param UsersTable&BelongsTo $Users
+ * @param ArticlesTable&\Cake\ORM\Association\BelongsTo $Articles
+ * @param UsersTable&\Cake\ORM\Association\BelongsTo $Users
  * @method Comment get($primaryKey, array $options = [])
  * @method Comment newEntity(array $data, array $options = [])
- * @mixin LoggerBehavior
+ * @mixin \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior
  */
 class CommentsTable extends Table
 {

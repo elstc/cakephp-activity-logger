@@ -7,11 +7,11 @@ use Cake\ORM\Table;
 use TestApp\Model\Entity\Article;
 
 /**
- * @param AuthorsTable&BelongsTo $Authors
- * @param CommentsTable&HasMany $Comments
+ * @param AuthorsTable&\Cake\ORM\Association\BelongsTo $Authors
+ * @param CommentsTable&\Cake\ORM\Association\HasMany $Comments
  * @method Article get($primaryKey, array $options = [])
  * @method Article newEntity(array $data, array $options = [])
- * @mixin LoggerBehavior
+ * @mixin \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior
  */
 class ArticlesTable extends Table
 {

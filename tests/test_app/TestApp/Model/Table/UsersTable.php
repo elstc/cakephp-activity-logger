@@ -7,10 +7,10 @@ use Cake\ORM\Table;
 use TestApp\Model\Entity\User;
 
 /**
- * @param CommentsTable&HasMany $Comments
+ * @param CommentsTable&\Cake\ORM\Association\HasMany $Comments
  * @method User get($primaryKey, array $options = [])
  * @method User newEntity(array $data, array $options = [])
- * @mixin LoggerBehavior
+ * @mixin \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior
  */
 class UsersTable extends Table
 {

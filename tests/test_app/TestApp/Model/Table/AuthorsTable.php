@@ -7,10 +7,10 @@ use Cake\ORM\Table;
 use TestApp\Model\Entity\Author;
 
 /**
- * @param ArticlesTable&HasMany $Articles
+ * @param ArticlesTable&\Cake\ORM\Association\HasMany $Articles
  * @method Author get($primaryKey, array $options = [])
  * @method Author newEntity(array $data, array $options = [])
- * @mixin LoggerBehavior
+ * @mixin \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior
  */
 class AuthorsTable extends Table
 {
