@@ -85,7 +85,7 @@ jobs:
         if: matrix.db-type == 'mysql:5.7'
         run: docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cakephp_test -p 3306:3306 -d mysql:5.7 --character-set-server=utf8 --default-authentication-plugin=mysql_native_password --disable-log-bin
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
@@ -106,7 +106,7 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m')"
 
       - name: Cache composer dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
@@ -151,14 +151,14 @@ jobs:
 
       - name: Submit code coverage
         if: matrix.coverage == 'coverage'
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
 
   cs-stan:
     name: Coding Standard & Static Analysis
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
@@ -178,7 +178,7 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m')"
 
       - name: Cache composer dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
