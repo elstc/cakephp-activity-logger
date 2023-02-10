@@ -5,7 +5,7 @@
         <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
     </a>
     <a href="https://github.com/elstc/cakephp-activity-logger/actions" target="_blank">
-        <img alt="Build Status" src="https://img.shields.io/github/workflow/status/elstc/cakephp-activity-logger/CakePHP%20Plugin%20CI/cake4?style=flat-square">
+        <img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/elstc/cakephp-activity-logger/ci.yml?style=flat-square">
     </a>
     <a href="https://codecov.io/gh/elstc/cakephp-activity-logger" target="_blank">
         <img alt="Codecov" src="https://img.shields.io/codecov/c/github/elstc/cakephp-activity-logger.svg?style=flat-square">
