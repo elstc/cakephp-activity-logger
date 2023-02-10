@@ -3,15 +3,14 @@ name: CakePHP Plugin CI
 on:
   push:
     branches:
-      - master
-      - develop
+      - cake3
   pull_request:
     branches:
       - '*'
   schedule:
     - cron: "0 7 1 * *"
       branches:
-        - master
+        - cake3
 
 jobs:
   testsuite:
@@ -19,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cakephp-version: ['3.8.*', '3.9.*']
+        cakephp-version: ['3.9.*', '3.10.*']
         php-version: ['7.2', '7.4']
         db-type: ['mysql']
         prefer-lowest: ['']
@@ -69,8 +68,19 @@ jobs:
             prefer-lowest: ''
             coverage: 'no'
 
+          - cakephp-version: '3.8.*'
+            php-version: '5.6'
+            db-type: 'mysql'
+            prefer-lowest: ''
+            coverage: 'no'
+          - cakephp-version: '3.8.*'
+            php-version: '7.4'
+            db-type: 'mysql'
+            prefer-lowest: ''
+            coverage: 'no'
+
           - php-version: '7.4'
-            cakephp-version: '3.9.*'
+            cakephp-version: '3.10.*'
             db-type: 'mysql'
             prefer-lowest: ''
             coverage: 'coverage'
