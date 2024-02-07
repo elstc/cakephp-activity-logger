@@ -10,9 +10,6 @@ on:
       - '*'
   schedule:
     - cron: "0 7 1 * *"
-      branches:
-        - cake4
-        - cake3
 
 jobs:
   testsuite:
@@ -20,8 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cakephp-version: ['4.4.*']
-        php-version: ['7.4', '8.0', '8.1']
+        cakephp-version: ['4.5.*']
+        php-version: ['7.4', '8.0', '8.1', '8.2']
         db-type: ['mysql']
         prefer-lowest: ['']
         coverage: ['no']
@@ -70,8 +67,19 @@ jobs:
             prefer-lowest: ''
             coverage: 'no'
 
-          - php-version: '8.1'
-            cakephp-version: '4.4.*'
+          - cakephp-version: '4.5.*'
+            php-version: '7.2'
+            db-type: 'mysql:5.7'
+            prefer-lowest: 'prefer-lowest'
+            coverage: 'no'
+          - cakephp-version: '4.4.*'
+            php-version: '8.2'
+            db-type: 'mysql'
+            prefer-lowest: ''
+            coverage: 'no'
+
+          - php-version: '8.2'
+            cakephp-version: '4.5.*'
             db-type: 'mysql'
             prefer-lowest: ''
             coverage: 'coverage'
