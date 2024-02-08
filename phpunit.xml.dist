@@ -17,22 +17,16 @@
         </testsuite>
     </testsuites>
 
-    <!-- Setup a listener for fixtures -->
-    <listeners>
-        <listener
-                class="\TestApp\TestSuite\Fixture\FixtureInjector"
-                file="./tests/test_app/TestApp/TestSuite/Fixture/FixtureInjector.php">
-            <arguments>
-                <object class="\Cake\TestSuite\Fixture\FixtureManager" />
-            </arguments>
-        </listener>
-    </listeners>
+    <!-- Load extension for fixtures -->
+    <extensions>
+        <extension class="Cake\TestSuite\Fixture\PHPUnitExtension"/>
+    </extensions>
 
     <!-- Prevent coverage reports from looking in tests and vendors -->
-    <filter>
-        <whitelist>
+    <coverage>
+        <include>
             <directory suffix=".php">./src/</directory>
-        </whitelist>
-    </filter>
+        </include>
+    </coverage>
 
 </phpunit>

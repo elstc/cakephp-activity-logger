@@ -31,6 +31,16 @@ $here = __DIR__;
 chdir($root);
 require $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
 
+// setup migration
+$schemaLoader = new \Cake\TestSuite\Fixture\SchemaLoader();
+$schemaLoader->loadInternalFile($here . '/test_app/config/schema.php');
+
+$migrator = new \Migrations\TestSuite\Migrator();
+$migrator->run([
+    'plugin' => 'Elastic/ActivityLogger',
+    'skip' => ['authors', 'articles', 'comments', 'users'],
+]);
+
 Cache::clearAll();
 FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
