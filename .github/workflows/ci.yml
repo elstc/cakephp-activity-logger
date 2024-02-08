@@ -23,39 +23,6 @@ jobs:
         prefer-lowest: ['']
         coverage: ['no']
         include:
-          - cakephp-version: '4.0.*'
-            php-version: '7.2'
-            db-type: 'mysql:5.7'
-            prefer-lowest: 'prefer-lowest'
-            coverage: 'no'
-          - cakephp-version: '4.0.*'
-            php-version: '8.0'
-            db-type: 'mysql'
-            prefer-lowest: ''
-            coverage: 'no'
-
-          - cakephp-version: '4.1.*'
-            php-version: '7.2'
-            db-type: 'mysql:5.7'
-            prefer-lowest: 'prefer-lowest'
-            coverage: 'no'
-          - cakephp-version: '4.1.*'
-            php-version: '8.0'
-            db-type: 'mysql'
-            prefer-lowest: ''
-            coverage: 'no'
-
-          - cakephp-version: '4.2.*'
-            php-version: '7.2'
-            db-type: 'mysql:5.7'
-            prefer-lowest: 'prefer-lowest'
-            coverage: 'no'
-          - cakephp-version: '4.2.*'
-            php-version: '8.0'
-            db-type: 'mysql'
-            prefer-lowest: ''
-            coverage: 'no'
-
           - cakephp-version: '4.3.*'
             php-version: '7.2'
             db-type: 'mysql:5.7'
@@ -173,7 +140,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.2'
           extensions: mbstring, intl, apcu
           coverage: none
 
