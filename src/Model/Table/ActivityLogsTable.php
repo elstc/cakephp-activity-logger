@@ -32,20 +32,8 @@ class ActivityLogsTable extends Table
         $this->setTable('activity_logs');
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
-    }
 
-    /**
-     * Add data type
-     *
-     * @param \Cake\Database\Schema\TableSchemaInterface $schema the table
-     * @return \Cake\Database\Schema\TableSchemaInterface
-     */
-    protected function _initializeSchema(TableSchemaInterface $schema): TableSchemaInterface
-    {
-        $schema = parent::_initializeSchema($schema);
-        $schema->setColumnType('data', 'json');
-
-        return $schema;
+        $this->getSchema()->setColumnType('data', 'json');
     }
 
     /**
