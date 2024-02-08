@@ -16,13 +16,6 @@ use TestApp\Model\Table\UsersTable;
 
 /**
  * Elastic\ActivityLogger\Model\Behavior\LoggerBehavior Test Case
- *
- * @property \Elastic\ActivityLogger\Model\Table\ActivityLogsTable $ActivityLogs
- * @property \TestApp\Model\Table\AuthorsTable $Authors
- * @property \TestApp\Model\Table\ArticlesTable $Articles
- * @property \TestApp\Model\Table\CommentsTable $Comments
- * @property \TestApp\Model\Table\UsersTable $Users
- * @property LoggerBehavior $Logger
  */
 class LoggerBehaviorTest extends TestCase
 {
@@ -33,6 +26,36 @@ class LoggerBehaviorTest extends TestCase
         'plugin.Elastic/ActivityLogger.Comments',
         'plugin.Elastic/ActivityLogger.Users',
     ];
+
+    /**
+     * @var LoggerBehavior
+     */
+    private $Logger;
+
+    /**
+     * @var \TestApp\Model\Table\AuthorsTable
+     */
+    private $Authors;
+
+    /**
+     * @var \TestApp\Model\Table\ArticlesTable
+     */
+    private $Articles;
+
+    /**
+     * @var \TestApp\Model\Table\CommentsTable
+     */
+    private $Comments;
+
+    /**
+     * @var \TestApp\Model\Table\UsersTable
+     */
+    private $Users;
+
+    /**
+     * @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable
+     */
+    private $ActivityLogs;
 
     public function setUp(): void
     {
