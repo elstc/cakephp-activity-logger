@@ -20,8 +20,12 @@ class AlterCharsetToUtf8mb4 extends AbstractMigration//@codingStandardsIgnoreEnd
      */
     public function up()
     {
-        $query = $this->getQueryBuilder();
-        $schemaCollection = $query->getConnection()->getSchemaCollection();
+        if (class_exists('\Migrations\CakeAdapter') && $this->getAdapter() instanceof \Migrations\CakeAdapter) {
+            $schemaCollection = new \Cake\Database\Schema\Collection($this->getAdapter()->getCakeConnection());
+        } else {
+            $schemaCollection = $this->getQueryBuilder()->getConnection()->getSchemaCollection();
+        }
+
         if ($schemaCollection === null) {
             throw new Exception('$schemaCollection not exists.');
         }
