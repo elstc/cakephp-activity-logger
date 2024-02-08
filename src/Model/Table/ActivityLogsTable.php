@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Elastic\ActivityLogger\Model\Table;
 
 use Cake\Core\Configure;
-use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Entity;
 use Cake\ORM\Query;
