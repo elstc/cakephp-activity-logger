@@ -29,8 +29,8 @@
         }
     },
     "scripts": {
-        "cs-check": "phpcs -p --extensions=php --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests",
-        "cs-fix": "phpcbf -p --extensions=php --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests",
+        "cs-check": "phpcs -p --extensions=php ./src ./tests",
+        "cs-fix": "phpcbf -p --extensions=php ./src ./tests",
         "update-lowest": "composer update --prefer-lowest --prefer-stable"
     },
     "config": {

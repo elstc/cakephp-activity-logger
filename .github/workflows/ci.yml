@@ -142,14 +142,14 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
 
-      - name: Get CodeSniffer
-        run: composer require cakephp/cakephp-codesniffer:^5.0
+      - name: Composer install
+        run: composer install
 #
 #      - name: composer install
 #        run: composer stan-setup
 
       - name: Run PHP CodeSniffer
-        run: vendor/bin/phpcs --report=checkstyle -p --extensions=php --standard=vendor/cakephp/cakephp-codesniffer/CakePHP src/ tests/
+        run: vendor/bin/phpcs --report=checkstyle -p --extensions=php src/ tests/
 #
 #      - name: Run psalm
 #        if: success() || failure()
