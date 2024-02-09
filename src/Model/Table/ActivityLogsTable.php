@@ -6,9 +6,9 @@ namespace Elastic\ActivityLogger\Model\Table;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Entity;
+use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
 /**
@@ -18,6 +18,8 @@ use Cake\Validation\Validator;
  */
 class ActivityLogsTable extends Table
 {
+    use LocatorAwareTrait;
+
     /**
      * Initialize method
      *
@@ -158,7 +160,7 @@ class ActivityLogsTable extends Table
         $objectModel = null;
         $objectId = null;
         if ($object instanceof Entity) {
-            $objectTable = TableRegistry::getTableLocator()->get($object->getSource());
+            $objectTable = $this->fetchTable($object->getSource());
             $objectModel = $objectTable->getRegistryAlias();
             $objectId = $this->getScopeId($objectTable, $object);
         }
@@ -175,7 +177,7 @@ class ActivityLogsTable extends Table
      * @param \Cake\Datasource\EntityInterface $entity an entity
      * @return string|int
      */
-    public function getScopeId(Table $table, EntityInterface $entity)
+    public function getScopeId(Table $table, EntityInterface $entity): string|int
     {
         $primaryKey = $table->getPrimaryKey();
         if (is_string($primaryKey)) {

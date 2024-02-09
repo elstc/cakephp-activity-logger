@@ -1,4 +1,4 @@
-# ActivityLogger plugin for CakePHP 4.x
+# ActivityLogger plugin for CakePHP 5.x
 
 <p style="text-align: center">
     <a href="LICENSE.txt" target="_blank">
@@ -22,7 +22,7 @@ You can install this plugin into your CakePHP application using [composer](http:
 The recommended way to install composer packages is:
 
 ```
-composer require elstc/cakephp-activity-logger:^2.0
+composer require elstc/cakephp-activity-logger:^3.0
 ```
 
 ### Load plugin

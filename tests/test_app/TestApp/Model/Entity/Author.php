@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace TestApp\Model\Entity;
 
+use ArrayAccess;
 use Authentication\IdentityInterface;
 use Cake\ORM\Entity;
 
@@ -13,16 +14,16 @@ use Cake\ORM\Entity;
  */
 class Author extends Entity implements IdentityInterface
 {
-    protected $_accessible = ['*' => true, 'id' => false];
+    protected array $_accessible = ['*' => true, 'id' => false];
 
-    protected $_hidden = ['password'];
+    protected array $_hidden = ['password'];
 
-    public function getIdentifier()
+    public function getIdentifier(): array|string|int|null
     {
         return $this->id;
     }
 
-    public function getOriginalData()
+    public function getOriginalData(): ArrayAccess|array
     {
         return $this;
     }

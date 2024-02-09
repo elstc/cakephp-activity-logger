@@ -2,8 +2,6 @@
 declare(strict_types=1);
 
 use Cake\Cache\Cache;
-use Cake\I18n\FrozenTime;
-use Cake\I18n\Time;
 
 /**
  * Test suite bootstrap for RememberMe.
@@ -42,7 +40,5 @@ $migrator->run([
 ]);
 
 Cache::clearAll();
-FrozenTime::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
-Time::setJsonEncodeFormat('yyyy-MM-dd\'T\'HH:mm:ssxxx');
 
 error_reporting(E_ALL);

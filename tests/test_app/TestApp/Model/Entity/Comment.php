@@ -14,5 +14,5 @@ use Cake\ORM\Entity;
  */
 class Comment extends Entity
 {
-    protected $_accessible = ['*' => true, 'id' => false];
+    protected array $_accessible = ['*' => true, 'id' => false];
 }

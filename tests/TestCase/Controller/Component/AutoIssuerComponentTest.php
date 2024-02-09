@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Test\TestCase\Controller\Component;
 
-use Cake\Auth\BasicAuthenticate;
-use Cake\Controller\Component\AuthComponent;
+use ArrayObject;
 use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
 use Cake\Event\Event;
@@ -12,6 +11,7 @@ use Cake\Event\EventManager;
 use Cake\Http\ServerRequest;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent;
+use PHPUnit\Framework\MockObject\MockObject;
 use TestApp\Model\Entity\User;
 use TestApp\Model\Table\ArticlesTable;
 use TestApp\Model\Table\AuthorsTable;
@@ -22,7 +22,7 @@ use TestApp\Model\Table\CommentsTable;
  */
 class AutoIssuerComponentTest extends TestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Elastic/ActivityLogger.Authors',
         'plugin.Elastic/ActivityLogger.Articles',
         'plugin.Elastic/ActivityLogger.Comments',
@@ -34,45 +34,46 @@ class AutoIssuerComponentTest extends TestCase
      *
      * @var AutoIssuerComponent
      */
-    private $AutoIssuer;
+    private AutoIssuerComponent $AutoIssuer;
 
     /**
      * @var ComponentRegistry
      */
-    private $registry;
+    private ComponentRegistry $registry;
 
     /**
      * @var \TestApp\Model\Table\AuthorsTable
      */
-    private $Authors;
+    private AuthorsTable $Authors;
 
     /**
      * @var \TestApp\Model\Table\ArticlesTable
      */
-    private $Articles;
+    private ArticlesTable $Articles;
 
     /**
      * @var \TestApp\Model\Table\CommentsTable
      */
-    private $Comments;
+    private CommentsTable $Comments;
 
     /**
      * @var \Cake\Http\ServerRequest|\PHPUnit\Framework\MockObject\MockObject
      */
-    private $request;
+    private ServerRequest|MockObject $request;
 
     /**
      * setUp method
      *
      * @return void
+     * @noinspection PhpFieldAssignmentTypeMismatchInspection
      */
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->Authors = $this->getTableLocator()->get('TestApp.Authors', ['className' => AuthorsTable::class]);
-        $this->Articles = $this->getTableLocator()->get('TestApp.Articles', ['className' => ArticlesTable::class]);
-        $this->Comments = $this->getTableLocator()->get('TestApp.Comments', ['className' => CommentsTable::class]);
+        $this->Authors = $this->fetchTable('TestApp.Authors', ['className' => AuthorsTable::class]);
+        $this->Articles = $this->fetchTable('TestApp.Articles', ['className' => ArticlesTable::class]);
+        $this->Comments = $this->fetchTable('TestApp.Comments', ['className' => CommentsTable::class]);
 
         $this->request = $this->createMock(ServerRequest::class);
         $this->registry = new ComponentRegistry(new Controller($this->request));
@@ -167,89 +168,7 @@ class AutoIssuerComponentTest extends TestCase
     }
 
     /**
-     * Test Controller.startup Event hook
-     *
-     * - Work with AuthComponent
-     *
-     * @return void
-     */
-    public function testStartupWithAuthComponent(): void
-    {
-        // Create AuthComponent mock
-        $auth = $this->getMockBuilder(AuthComponent::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['user'])
-            ->getMock();
-        $auth->method('user')
-            ->willReturn([
-                'id' => 1,
-            ]);
-        $this->registry->set('Auth', $auth);
-
-        // Dispatch Controller.startup Event
-        $event = new Event('Controller.startup');
-        EventManager::instance()->dispatch($event);
-
-        // The model defined in `initializedTables` will set an issuer
-        $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
-        $this->assertSame(1, $this->Articles->getLogIssuer()->id);
-        $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
-        $this->assertSame(1, $this->Comments->getLogIssuer()->id);
-
-        // The model undefined in `initializedTables` not set the issuer
-        $this->assertNull($this->Authors->getLogIssuer());
-    }
-
-    /**
-     * Test Controller.startup Event hook
-     *
-     * @return void
-     */
-    public function testStartupWithAuthComponentNotAuthenticated(): void
-    {
-        // Create AuthComponent mock
-        $auth = $this->getMockBuilder(AuthComponent::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['user'])
-            ->getMock();
-        $auth->method('user')
-            ->willReturn(null);
-        $this->registry->set('Auth', $auth);
-
-        // Dispatch Controller.startup Event
-        $event = new Event('Controller.startup');
-        EventManager::instance()->dispatch($event);
-
-        // If not authenticated, the issuer will not be set
-        $this->assertNull($this->Articles->getLogIssuer());
-        $this->assertNull($this->Comments->getLogIssuer());
-        $this->assertNull($this->Authors->getLogIssuer());
-    }
-
-    /**
-     * Test AuthComponent Auth.afterIdentify Event hook
-     *
-     * @return void
-     */
-    public function testOnAuthAfterIdentify(): void
-    {
-        // Dispatch Auth.afterIdentify Event
-        $event = new Event('Auth.afterIdentify');
-        $event->setData([['id' => 2], new BasicAuthenticate($this->registry)]);
-        EventManager::instance()->dispatch($event);
-
-        // The model defined in `initializedTables` will set an issuer
-        $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
-        $this->assertSame(2, $this->Articles->getLogIssuer()->id);
-        $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
-        $this->assertSame(2, $this->Comments->getLogIssuer()->id);
-
-        // The model undefined in `initializedTables` not set the issuer
-        $this->assertNull($this->Authors->getLogIssuer());
-    }
-
-    /**
-     * Test AuthComponent Auth.afterIdentify Event hook
+     * Test Authentication.afterIdentify Event hook
      *
      * @return void
      */
@@ -257,7 +176,7 @@ class AutoIssuerComponentTest extends TestCase
     {
         // Dispatch Authentication.afterIdentify Event
         $event = new Event('Authentication.afterIdentify');
-        $event->setData(['identity' => new \ArrayObject(['id' => 2])]);
+        $event->setData(['identity' => new ArrayObject(['id' => 2])]);
         EventManager::instance()->dispatch($event);
 
         // The model defined in `initializedTables` will set an issuer
@@ -277,17 +196,13 @@ class AutoIssuerComponentTest extends TestCase
      */
     public function testOnInitializeModel(): void
     {
-        // -- Set issuer to AutoIssuerComponent
-        // Create AuthComponent mock
-        $auth = $this->getMockBuilder(AuthComponent::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['user'])
-            ->getMock();
-        $auth->method('user')
-            ->willReturn([
+        // Set identity
+        $this->request
+            ->method('getAttribute')
+            ->with('identity')
+            ->willReturn(new User([
                 'id' => 1,
-            ]);
-        $this->registry->set('Auth', $auth);
+            ]));
 
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
@@ -296,7 +211,8 @@ class AutoIssuerComponentTest extends TestCase
 
         // reload Table
         $this->getTableLocator()->remove('TestApp.Authors');
-        $this->Authors = $this->getTableLocator()->get('TestApp.Authors', [
+        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        $this->Authors = $this->fetchTable('TestApp.Authors', [
             'className' => AuthorsTable::class,
         ]);
 
@@ -312,17 +228,13 @@ class AutoIssuerComponentTest extends TestCase
      */
     public function testOnInitializeModelAtClearTableLocator(): void
     {
-        // -- Set issuer to AutoIssuerComponent
-        // Create AuthComponent mock
-        $auth = $this->getMockBuilder(AuthComponent::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['user'])
-            ->getMock();
-        $auth->method('user')
-            ->willReturn([
+        // Set identity
+        $this->request
+            ->method('getAttribute')
+            ->with('identity')
+            ->willReturn(new User([
                 'id' => 1,
-            ]);
-        $this->registry->set('Auth', $auth);
+            ]));
 
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
@@ -331,7 +243,8 @@ class AutoIssuerComponentTest extends TestCase
 
         // clear TableRegistry
         $this->getTableLocator()->clear();
-        $this->Articles = $this->getTableLocator()->get('Articles', [
+        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        $this->Articles = $this->fetchTable('Articles', [
             'className' => ArticlesTable::class,
         ]);
 

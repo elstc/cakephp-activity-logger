@@ -1,32 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
-    colors="true"
-    processIsolation="false"
-    stopOnFailure="false"
-    bootstrap="./tests/bootstrap.php"
-    >
-    <php>
-        <ini name="memory_limit" value="-1"/>
-        <ini name="apc.enable_cli" value="1"/>
-    </php>
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        colors="true"
+        processIsolation="false"
+        stopOnFailure="false"
+        bootstrap="./tests/bootstrap.php"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
+        cacheDirectory=".phpunit.cache"
+>
+  <php>
+    <ini name="memory_limit" value="-1"/>
+    <ini name="apc.enable_cli" value="1"/>
+  </php>
 
-    <!-- Add any additional test suites you want to run here -->
-    <testsuites>
-        <testsuite name="Elastic/ActivityLogger Test Suite">
-            <directory>./tests/TestCase</directory>
-        </testsuite>
-    </testsuites>
+  <!-- Add any additional test suites you want to run here -->
+  <testsuites>
+    <testsuite name="Elastic/ActivityLogger Test Suite">
+      <directory>./tests/TestCase</directory>
+    </testsuite>
+  </testsuites>
 
-    <!-- Load extension for fixtures -->
-    <extensions>
-        <extension class="Cake\TestSuite\Fixture\PHPUnitExtension"/>
-    </extensions>
+  <!-- Load extension for fixtures -->
+  <extensions>
+    <bootstrap class="Cake\TestSuite\Fixture\Extension\PHPUnitExtension"/>
+  </extensions>
 
-    <!-- Prevent coverage reports from looking in tests and vendors -->
-    <coverage>
-        <include>
-            <directory suffix=".php">./src/</directory>
-        </include>
-    </coverage>
-
+  <!-- Prevent coverage reports from looking in tests and vendors -->
+  <source>
+    <include>
+      <directory suffix=".php">./src/</directory>
+    </include>
+  </source>
 </phpunit>

@@ -3,13 +3,15 @@ declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Controller\Component;
 
+use ArrayAccess;
 use Cake\Controller\Component;
-use Cake\Controller\Component\AuthComponent;
 use Cake\Controller\ComponentRegistry;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
+use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
+use Cake\ORM\Table;
 use Cake\Utility\Hash;
 
 /**
@@ -32,7 +34,7 @@ class AutoIssuerComponent extends Component
      *
      * @var array
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'userModel' => 'Users',
         'identityAttribute' => 'identity',
         'initializedTables' => [],
@@ -43,12 +45,12 @@ class AutoIssuerComponent extends Component
      *
      * @var \Cake\ORM\Entity|null
      */
-    protected $issuer;
+    protected ?Entity $issuer = null;
 
     /**
-     * @var \Cake\ORM\Table[]
+     * @var array<\Cake\ORM\Table>
      */
-    protected $tables = [];
+    protected array $tables = [];
 
     /**
      * AutoIssuerComponent constructor.
@@ -71,7 +73,6 @@ class AutoIssuerComponent extends Component
         EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
 
         return parent::implementedEvents() + [
-                'Auth.afterIdentify' => 'onAfterIdentifyAtAuth',
                 'Authentication.afterIdentify' => 'onAfterIdentifyAtAuthentication',
             ];
     }
@@ -83,16 +84,6 @@ class AutoIssuerComponent extends Component
      */
     public function startup(): void
     {
-        $loadedComponents = $this->_registry->loaded();
-
-        // Get a logged-in user from AuthComponent
-        if (in_array('Auth', $loadedComponents)) {
-            $auth = $this->_registry->get('Auth');
-            if (is_a($auth, AuthComponent::class)) {
-                $this->issuer = $this->getIssuerFromUserArray($auth->user());
-            }
-        }
-
         // Get a logged-in user from the request identity attribute
         if (!$this->issuer) {
             $identity = $this->getController()->getRequest()
@@ -101,31 +92,6 @@ class AutoIssuerComponent extends Component
                 $this->issuer = $this->getIssuerFromUserArray($identity->getOriginalData());
             }
         }
-
-        if (!$this->issuer) {
-            // not logged in
-            return;
-        }
-
-        // register issuer to the model
-        $this->setIssuerToAllModel($this->issuer);
-    }
-
-    /**
-     * on Auth.afterIdentify
-     *
-     * - get issuer from event data
-     * - register issuer to the model
-     *
-     * @param \Cake\Event\Event $event the Event
-     * @return void
-     * @noinspection PhpUnused
-     */
-    public function onAfterIdentifyAtAuth(Event $event): void
-    {
-        /** @var array $user */
-        [$user] = $event->getData();
-        $this->issuer = $this->getIssuerFromUserArray($user);
 
         if (!$this->issuer) {
             // not logged in
@@ -198,7 +164,7 @@ class AutoIssuerComponent extends Component
     {
         foreach ($tables as $tableName) {
             if ($this->getTableLocator()->exists($tableName)) {
-                $this->tables[$tableName] = $this->getTableLocator()->get($tableName);
+                $this->tables[$tableName] = $this->fetchTable($tableName);
             }
         }
     }
@@ -221,10 +187,10 @@ class AutoIssuerComponent extends Component
     /**
      * Get issuer from logged in user data
      *
-     * @param array|\ArrayAccess|null $user a User entity
+     * @param \ArrayAccess|array|null $user a User entity
      * @return \Cake\Datasource\EntityInterface|null
      */
-    private function getIssuerFromUserArray($user): ?EntityInterface
+    private function getIssuerFromUserArray(array|ArrayAccess|null $user): ?EntityInterface
     {
         if ($user === null) {
             return null;
@@ -244,8 +210,8 @@ class AutoIssuerComponent extends Component
      *
      * @return \Cake\ORM\Table
      */
-    private function getUserModel(): \Cake\ORM\Table
+    private function getUserModel(): Table
     {
-        return $this->getTableLocator()->get($this->getConfig('userModel'));
+        return $this->fetchTable($this->getConfig('userModel'));
     }
 }

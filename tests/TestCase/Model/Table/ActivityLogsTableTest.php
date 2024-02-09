@@ -5,6 +5,7 @@ namespace Elastic\ActivityLogger\Test\TestCase\Model\Table;
 
 use Cake\Core\Configure;
 use Cake\TestSuite\TestCase;
+use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
 use TestApp\Model\Table\AuthorsTable;
 
 /**
@@ -17,7 +18,7 @@ class ActivityLogsTableTest extends TestCase
      *
      * @var array
      */
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Elastic/ActivityLogger.ActivityLogs',
         'plugin.Elastic/ActivityLogger.Authors',
     ];
@@ -25,24 +26,27 @@ class ActivityLogsTableTest extends TestCase
     /**
      * @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable
      */
-    private $ActivityLogs;
+    private ActivityLogsTable $ActivityLogs;
 
     /**
      * @var \TestApp\Model\Table\AuthorsTable
      */
-    private $Authors;
+    private AuthorsTable $Authors;
 
     /**
      * setUp method
      *
-     * @return void
+     * @return       void
+     * @noinspection PhpFieldAssignmentTypeMismatchInspection
      */
     public function setUp(): void
     {
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
-        $this->ActivityLogs = $this->getTableLocator()->get('Elastic/ActivityLogger.ActivityLogs');
-        $this->Authors = $this->getTableLocator()->get('TestApp.Authors', ['className' => AuthorsTable::class]);
+
+        $this->ActivityLogs = $this->fetchTable('Elastic/ActivityLogger.ActivityLogs');
+
+        $this->Authors = $this->fetchTable('TestApp.Authors', ['className' => AuthorsTable::class]);
     }
 
     /**

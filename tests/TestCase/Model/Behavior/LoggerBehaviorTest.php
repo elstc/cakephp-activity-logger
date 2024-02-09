@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace Elastic\ActivityLogger\Test\TestCase\Model\Behavior;
 
 use Cake\Core\Configure;
+use Cake\ORM\Table;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
+use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
 use Psr\Log\LogLevel;
 use TestApp\Model\Table\AlterActivityLogsTable;
 use TestApp\Model\Table\ArticlesTable;
@@ -19,7 +21,7 @@ use TestApp\Model\Table\UsersTable;
  */
 class LoggerBehaviorTest extends TestCase
 {
-    public $fixtures = [
+    public array $fixtures = [
         'plugin.Elastic/ActivityLogger.EmptyRecords\ActivityLogs',
         'plugin.Elastic/ActivityLogger.Authors',
         'plugin.Elastic/ActivityLogger.Articles',
@@ -30,43 +32,49 @@ class LoggerBehaviorTest extends TestCase
     /**
      * @var LoggerBehavior
      */
-    private $Logger;
+    private LoggerBehavior $Logger;
 
     /**
      * @var \TestApp\Model\Table\AuthorsTable
      */
-    private $Authors;
+    private AuthorsTable $Authors;
 
     /**
      * @var \TestApp\Model\Table\ArticlesTable
      */
-    private $Articles;
+    private ArticlesTable $Articles;
 
     /**
      * @var \TestApp\Model\Table\CommentsTable
      */
-    private $Comments;
+    private CommentsTable $Comments;
 
     /**
      * @var \TestApp\Model\Table\UsersTable
      */
-    private $Users;
+    private UsersTable $Users;
 
     /**
      * @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTable
      */
-    private $ActivityLogs;
+    private ActivityLogsTable $ActivityLogs;
 
+    /**
+     * @return       void
+     * @noinspection PhpFieldAssignmentTypeMismatchInspection
+     */
     public function setUp(): void
     {
         parent::setUp();
         Configure::write('App.namespace', 'MyApp');
-        $this->Logger = new LoggerBehavior(new \Cake\ORM\Table());
-        $this->Authors = $this->getTableLocator()->get('TestApp.Authors', ['className' => AuthorsTable::class]);
-        $this->Articles = $this->getTableLocator()->get('TestApp.Articles', ['className' => ArticlesTable::class]);
-        $this->Comments = $this->getTableLocator()->get('TestApp.Comments', ['className' => CommentsTable::class]);
-        $this->Users = $this->getTableLocator()->get('TestApp.Users', ['className' => UsersTable::class]);
-        $this->ActivityLogs = $this->getTableLocator()->get('Elastic/ActivityLogger.ActivityLogs');
+
+        $this->Logger = new LoggerBehavior(new Table());
+
+        $this->Authors = $this->fetchTable('TestApp.Authors', ['className' => AuthorsTable::class]);
+        $this->Articles = $this->fetchTable('TestApp.Articles', ['className' => ArticlesTable::class]);
+        $this->Comments = $this->fetchTable('TestApp.Comments', ['className' => CommentsTable::class]);
+        $this->Users = $this->fetchTable('TestApp.Users', ['className' => UsersTable::class]);
+        $this->ActivityLogs = $this->fetchTable('Elastic/ActivityLogger.ActivityLogs');
     }
 
     public function tearDown(): void
@@ -92,6 +100,7 @@ class LoggerBehaviorTest extends TestCase
             'TestApp.Articles' => null,
             'TestApp.Users' => null,
         ], $this->Comments->getLogScope(), 'if systemScope = false, will does not set system scope');
+
         $this->markTestIncomplete('Not cover all');
     }
 
