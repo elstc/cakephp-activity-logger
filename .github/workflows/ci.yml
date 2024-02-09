@@ -103,7 +103,7 @@ jobs:
           if [[ ${{ matrix.db-type }} == 'mysql:8.0' ]]; then export DB_URL='mysql://root:root@127.0.0.1/cakephp_test?encoding=utf8mb4&init[]=SET sql_mode = "STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"'; fi
 
           if [[ ${{ matrix.coverage }} == 'coverage' ]]; then
-            export CODECOVERAGE=1 && vendor/bin/phpunit --stderr --verbose --coverage-clover=coverage.xml
+            export CODECOVERAGE=1 && vendor/bin/phpunit --stderr --coverage-clover=coverage.xml
           else
             vendor/bin/phpunit --stderr
           fi
