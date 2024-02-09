@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 use Cake\Cache\Cache;
+use Cake\TestSuite\Fixture\SchemaLoader;
+use Migrations\TestSuite\Migrator;
 
 /**
  * Test suite bootstrap for RememberMe.
@@ -30,10 +32,10 @@ chdir($root);
 require $root . '/vendor/cakephp/cakephp/tests/bootstrap.php';
 
 // setup migration
-$schemaLoader = new \Cake\TestSuite\Fixture\SchemaLoader();
+$schemaLoader = new SchemaLoader();
 $schemaLoader->loadInternalFile($here . '/test_app/config/schema.php');
 
-$migrator = new \Migrations\TestSuite\Migrator();
+$migrator = new Migrator();
 $migrator->run([
     'plugin' => 'Elastic/ActivityLogger',
     'skip' => ['authors', 'articles', 'comments', 'users'],
