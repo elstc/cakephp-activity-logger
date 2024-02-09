@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         cakephp-version: ['5.0.*']
-        php-version: ['8.2', '8.3']
+        php-version: ['8.1', '8.2', '8.3']
         db-type: ['mysql']
         prefer-lowest: ['']
         coverage: ['no']
@@ -28,13 +28,13 @@ jobs:
             prefer-lowest: 'prefer-lowest'
             coverage: 'no'
           - cakephp-version: '5.0.*'
-            php-version: '8.2'
+            php-version: '8.3'
             db-type: 'mysql'
             prefer-lowest: ''
             coverage: 'no'
 
           - php-version: '8.3'
-            cakephp-version: '5.*'
+            cakephp-version: '5.0.*'
             db-type: 'mysql'
             prefer-lowest: ''
             coverage: 'coverage'
@@ -48,7 +48,7 @@ jobs:
         if: matrix.db-type == 'mysql:8.0'
         run: docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cakephp_test -p 3306:3306 -d mysql:8.0 --default-authentication-plugin=mysql_native_password --disable-log-bin
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -56,20 +56,20 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: mbstring, intl, apcu, sqlite, pdo_mysql pdo_sqlite
+          extensions: mbstring, intl, apcu, sqlite, pdo_${{ matrix.db-type }}
           ini-values: apc.enable_cli = 1
           coverage: xdebug
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Get date part for cache key
         id: key-date
-        run: echo "::set-output name=date::$(date +'%Y-%m')"
+        run: echo "date=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
 
       - name: Cache composer dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -130,14 +130,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Get date part for cache key
         id: key-date
-        run: echo "::set-output name=date::$(date +'%Y-%m')"
+        run: echo "date=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
 
       - name: Cache composer dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ steps.key-date.outputs.date }}-${{ hashFiles('composer.json') }}-${{ matrix.prefer-lowest }}
