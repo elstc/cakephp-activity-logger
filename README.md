@@ -50,7 +50,7 @@ bin/cake migrations migrate -p Elastic/ActivityLogger
 class ArticlesTable extends Table
 {
 
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         // ...
 
@@ -113,7 +113,7 @@ If you using `Authorization` plugin or `AuthComponent`, the `AutoIssuerComponent
 // In AppController
 class AppController extends Controller
 {
-    public function initialize()
+    public function initialize(): void
     {
         // ...
         $this->loadComponent('Elastic/ActivityLogger.AutoIssuer', [
@@ -133,7 +133,7 @@ eg:
 // In AppController
 class AppController extends Controller
 {
-    public function initialize()
+    public function initialize(): void
     {
         $this->loadModel('Articles');
         $this->loadModel('Awesome.Favorites');
@@ -159,7 +159,7 @@ class AppController extends Controller
 class CommentsTable extends Table
 {
 
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         // ...
 
@@ -195,7 +195,7 @@ use `setLogMessageBuilder` method. You can generate any message for each action 
 class ArticlesTable extends Table
 {
 
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         // ...
 
