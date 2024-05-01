@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Setup MySQL latest
         if: matrix.db-type == 'mysql'
-        run: docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cakephp_test -p 3306:3306 -d mysql --default-authentication-plugin=mysql_native_password --disable-log-bin
+        run: docker run --rm --name=mysqld -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cakephp_test -p 3306:3306 -d mysql --disable-log-bin
 
       - name: Setup MySQL 8.0
         if: matrix.db-type == 'mysql:8.0'
