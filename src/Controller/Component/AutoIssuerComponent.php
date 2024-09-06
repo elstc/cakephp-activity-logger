@@ -197,9 +197,14 @@ class AutoIssuerComponent extends Component
         }
 
         $table = $this->getUserModel();
+
+        if ($user instanceof EntityInterface && $user->getSource()) {
+            return is_a($user, $table->getEntityClass()) ? $user : null;
+        }
+
         $userId = Hash::get($user, $table->getPrimaryKey());
         if ($userId) {
-            return $table->get($userId);
+            return $table->find()->where([$table->getPrimaryKey() => $userId])->first();
         }
 
         return null;
