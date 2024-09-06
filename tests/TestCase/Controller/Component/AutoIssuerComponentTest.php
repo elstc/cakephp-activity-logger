@@ -12,6 +12,7 @@ use Cake\Http\ServerRequest;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent;
 use PHPUnit\Framework\MockObject\MockObject;
+use TestApp\Model\Entity\Author;
 use TestApp\Model\Entity\User;
 use TestApp\Model\Table\ArticlesTable;
 use TestApp\Model\Table\AuthorsTable;
@@ -156,6 +157,58 @@ class AutoIssuerComponentTest extends TestCase
             ->method('getAttribute')
             ->with('identity')
             ->willReturn(null);
+
+        // Dispatch Controller.startup Event
+        $event = new Event('Controller.startup');
+        EventManager::instance()->dispatch($event);
+
+        // If not authenticated, the issuer will not be set
+        $this->assertNull($this->Articles->getLogIssuer());
+        $this->assertNull($this->Comments->getLogIssuer());
+        $this->assertNull($this->Authors->getLogIssuer());
+    }
+
+    /**
+     * Test Controller.startup Event hook
+     *
+     * @return void
+     */
+    public function testStartupWithOtherIdentity(): void
+    {
+        // Set identity
+        $user = new Author([
+            'id' => 1,
+        ]);
+        $user->setSource('Authors');
+        $this->request
+            ->method('getAttribute')
+            ->with('identity')
+            ->willReturn($user);
+
+        // Dispatch Controller.startup Event
+        $event = new Event('Controller.startup');
+        EventManager::instance()->dispatch($event);
+
+        // If not authenticated, the issuer will not be set
+        $this->assertNull($this->Articles->getLogIssuer());
+        $this->assertNull($this->Comments->getLogIssuer());
+        $this->assertNull($this->Authors->getLogIssuer());
+    }
+
+    /**
+     * Test Controller.startup Event hook
+     *
+     * @return void
+     */
+    public function testStartupWithUnknownIdentity(): void
+    {
+        // Set identity
+        $this->request
+            ->method('getAttribute')
+            ->with('identity')
+            ->willReturn(new User([
+                'id' => 0,
+            ]));
 
         // Dispatch Controller.startup Event
         $event = new Event('Controller.startup');
