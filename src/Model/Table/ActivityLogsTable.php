@@ -23,7 +23,7 @@ class ActivityLogsTable extends Table implements ActivityLogsTableInterface
     /**
      * Initialize method
      *
-     * @param array $config The configuration for the Table.
+     * @param array<string, mixed> $config The configuration for the Table.
      * @return void
      */
     public function initialize(array $config): void
@@ -155,7 +155,7 @@ class ActivityLogsTable extends Table implements ActivityLogsTableInterface
      * Build parameter from an entity
      *
      * @param \Cake\Datasource\EntityInterface|null $object an entity
-     * @return array [object_model, object_id]
+     * @return array<int,int|string|null> [object_model, object_id]
      */
     public function buildObjectParameter(?EntityInterface $object): array
     {

@@ -11,7 +11,6 @@ use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
-use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
 use Elastic\ActivityLogger\Model\Table\ActivityLogsTableInterface;
 use Psr\Log\LogLevel;
 
@@ -68,7 +67,7 @@ class LoggerBehavior extends Behavior
     ];
 
     /**
-     * @return array
+     * @return array<string>
      */
     public function implementedEvents(): array
     {
@@ -146,7 +145,7 @@ class LoggerBehavior extends Behavior
     /**
      * Get the log scope
      *
-     * @return array
+     * @return array<string>
      */
     public function getLogScope(): array
     {
@@ -200,9 +199,9 @@ class LoggerBehavior extends Behavior
     {
         $this->setConfig('issuer', $issuer);
 
-        // set issuer to scope, if the scopes contain the issuer's model
+        // set issuer to scope if the scopes contain the issuer's model
         [$issuerModel] = $this->buildObjectParameter($this->getConfig('issuer'));
-        if (array_key_exists($issuerModel, $this->getConfig('scope'))) {
+        if (array_key_exists((string)$issuerModel, $this->getConfig('scope'))) {
             $this->setLogScope($issuer);
         }
 
@@ -257,7 +256,7 @@ class LoggerBehavior extends Behavior
      *
      * @param string $level log level
      * @param string $message log message
-     * @param array $context context data
+     * @param array<string, mixed> $context context data
      * [
      *   'object' => Entity,
      *   'issuer' => Entity,
@@ -308,7 +307,7 @@ class LoggerBehavior extends Behavior
      * $table->find('activity', scope: $entity)
      *
      * @param \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog> $query the query
-     * @param ?EntityInterface $scope the scope entity
+     * @param \Cake\Datasource\EntityInterface|null $scope the scope entity
      * @return \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog>
      * @noinspection PhpUnusedParameterInspection
      */
@@ -362,7 +361,7 @@ class LoggerBehavior extends Behavior
      * Build parameter from an entity
      *
      * @param \Cake\Datasource\EntityInterface|null $object the object
-     * @return array [object_model, object_id]
+     * @return array<int,int|string|null> [object_model, object_id]
      * @see \Elastic\ActivityLogger\Model\Table\ActivityLogsTable::buildObjectParameter()
      */
     private function buildObjectParameter(?EntityInterface $object): array
@@ -395,7 +394,7 @@ class LoggerBehavior extends Behavior
     /**
      * Duplicate the log by scopes
      *
-     * @param array $scope target scope
+     * @param array<string> $scope target scope
      * @param \Elastic\ActivityLogger\Model\Entity\ActivityLog $log duplicate logs
      * @param \Cake\Datasource\EntityInterface|null $entity the entity
      * @return array<int, \Elastic\ActivityLogger\Model\Entity\ActivityLog>
@@ -452,6 +451,7 @@ class LoggerBehavior extends Behavior
      */
     private function getLogTable(): ActivityLogsTableInterface&Table
     {
+        /** @var \Elastic\ActivityLogger\Model\Table\ActivityLogsTableInterface&\Cake\ORM\Table $table */
         $table = $this->fetchTable($this->getConfig('logModelAlias'), [
             'className' => $this->getConfig('logModel'),
         ]);
@@ -470,7 +470,7 @@ class LoggerBehavior extends Behavior
      * - exclude hidden values
      *
      * @param \Cake\Datasource\EntityInterface|null $entity the entity
-     * @return array
+     * @return array<string, mixed>
      */
     private function getDirtyData(?EntityInterface $entity = null): array
     {
@@ -487,7 +487,7 @@ class LoggerBehavior extends Behavior
      * - exclude hidden values
      *
      * @param \Cake\Datasource\EntityInterface|null $entity the entity
-     * @return array
+     * @return array<string, mixed>
      */
     private function getData(?EntityInterface $entity = null): array
     {
@@ -511,7 +511,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * @param array|string $key config key
+     * @param array<string, mixed>|string $key config key
      * @param mixed $value set value
      * @param bool $merge override
      * @return void
@@ -528,7 +528,7 @@ class LoggerBehavior extends Behavior
      * scope設定
      *
      * @param \Cake\Datasource\EntityInterface|array<string>|array<\Cake\Datasource\EntityInterface>|string $value the scope
-     * @return array ['Scope.Key' => 'scope id', ...]
+     * @return array<string, int|string|null> ['Scope.Key' => 'scope id', ...]
      */
     private function buildScope(string|array|EntityInterface $value): array
     {
@@ -538,7 +538,7 @@ class LoggerBehavior extends Behavior
 
         $new = [];
         foreach ($value as $key => $arg) {
-            if (is_string($key)) {
+            if (is_string($key) && is_scalar($arg)) {
                 $new[$key] = $arg;
             } elseif (is_string($arg)) {
                 $new[$arg] = null;

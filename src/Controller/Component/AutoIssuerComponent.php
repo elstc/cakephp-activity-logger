@@ -55,7 +55,7 @@ class AutoIssuerComponent extends Component
      * AutoIssuerComponent constructor.
      *
      * @param \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller> $registry the ComponentRegistry
-     * @param array $config the config option
+     * @param array<string, mixed> $config the config option
      */
     public function __construct(ComponentRegistry $registry, array $config = [])
     {
@@ -65,7 +65,7 @@ class AutoIssuerComponent extends Component
     }
 
     /**
-     * @return array
+     * @return array<string, string>
      */
     public function implementedEvents(): array
     {
@@ -157,7 +157,7 @@ class AutoIssuerComponent extends Component
     /**
      * Set initialized models to this component's table collection
      *
-     * @param array $tables tables
+     * @param array<string> $tables tables
      * @return void
      */
     private function setInitializedTables(array $tables): void
@@ -188,7 +188,7 @@ class AutoIssuerComponent extends Component
     /**
      * Get issuer from logged in user data
      *
-     * @param \ArrayAccess<string, mixed>|array|null $user a User entity
+     * @param \ArrayAccess<string, mixed>|array<string, mixed>|null $user a User entity
      * @return \Cake\Datasource\EntityInterface|null
      */
     private function getIssuerFromUserArray(array|ArrayAccess|null $user): ?EntityInterface
