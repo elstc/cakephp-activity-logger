@@ -15,7 +15,7 @@ interface ActivityLogsTableInterface
      * Build parameter from an entity
      *
      * @param \Cake\Datasource\EntityInterface|null $object an entity
-     * @return array [object_model, object_id]
+     * @return array<int,int|string|null> [object_model, object_id]
      */
     public function buildObjectParameter(?EntityInterface $object): array;
 
