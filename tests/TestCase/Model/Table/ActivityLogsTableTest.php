@@ -93,12 +93,12 @@ class ActivityLogsTableTest extends TestCase
     public function testFindScope(): void
     {
         $author = $this->Authors->get(1);
-        $logs = $this->ActivityLogs->find('scope', ['scope' => $author])
+        $logs = $this->ActivityLogs->find('scope', $author)
             ->all()->toList();
         $this->assertCount(3, $logs);
         $this->assertSame('TestApp.Authors', $logs[0]->scope_model);
         $this->assertSame('1', $logs[0]->scope_id);
-        $logs = $this->ActivityLogs->find('scope', ['scope' => 'Custom'])
+        $logs = $this->ActivityLogs->find('scope', scope: 'Custom')
             ->all()->toList();
         $this->assertCount(1, $logs);
         $this->assertSame('Custom', $logs[0]->scope_model);
@@ -108,7 +108,7 @@ class ActivityLogsTableTest extends TestCase
     public function testFindIssuer(): void
     {
         $author = $this->Authors->get(2);
-        $logs = $this->ActivityLogs->find('issuer', ['issuer' => $author])
+        $logs = $this->ActivityLogs->find('issuer', $author)
             ->all()->toList();
         $this->assertCount(1, $logs);
         $this->assertSame('TestApp.Authors', $logs[0]->issuer_model);

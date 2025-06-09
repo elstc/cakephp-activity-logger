@@ -134,7 +134,7 @@ class LoggerBehaviorTest extends TestCase
         $this->Authors->save($author);
 
         // Saved ActivityLogs
-        $q = $this->ActivityLogs->find()->order(['id' => 'desc']);
+        $q = $this->ActivityLogs->find()->orderByDesc('id');
         $this->assertCount(4, $q->all(), 'record two logs, that the Authors scope and the System scope');
 
         /** @var ActivityLog $log */
@@ -282,12 +282,12 @@ class LoggerBehaviorTest extends TestCase
         /** @var ActivityLog $log */
         $log = $this->ActivityLogs->find()
             ->where(['scope_model' => 'TestApp.Authors'])
-            ->order(['id' => 'desc'])->first();
+            ->orderByDesc('id')->first();
         $this->assertEquals($author->id, $log->scope_id, 'will set scope');
         /** @var ActivityLog $log */
         $log = $this->ActivityLogs->find()
             ->where(['scope_model' => '\MyApp'])
-            ->order(['id' => 'desc'])->first();
+            ->orderByDesc('id')->first();
         $this->assertEquals(1, $log->scope_id, 'will set scope');
 
         $article = $this->Articles->get(2);
@@ -302,7 +302,7 @@ class LoggerBehaviorTest extends TestCase
 
         $logs = $this->ActivityLogs->find()
             ->where(['object_model' => 'TestApp.Comments'])
-            ->order(['id' => 'desc'])
+            ->orderByDesc('id')
             ->all()
             ->toArray();
 
@@ -330,7 +330,7 @@ class LoggerBehaviorTest extends TestCase
 
         $logs = $this->ActivityLogs->find()
             ->where(['object_model' => 'TestApp.Comments'])
-            ->order(['id' => 'desc'])
+            ->orderByDesc('id')
             ->all()
             ->toArray();
 
@@ -351,7 +351,7 @@ class LoggerBehaviorTest extends TestCase
         ]);
         $this->Authors->save($author);
         /** @var ActivityLog $log */
-        $log = $this->ActivityLogs->find()->order(['id' => 'desc'])->first();
+        $log = $this->ActivityLogs->find()->orderByDesc('id')->first();
         $this->assertSame('TestApp.Users', $log->issuer_model, 'will set issuer model');
         $this->assertEquals($user->id, $log->issuer_id, '発行者が指定されている');
 
@@ -368,7 +368,7 @@ class LoggerBehaviorTest extends TestCase
 
         $logs = $this->ActivityLogs->find()
             ->where(['object_model' => 'TestApp.Comments'])
-            ->order(['id' => 'desc'])
+            ->orderByDesc('id')
             ->all()
             ->toArray();
 
@@ -399,7 +399,7 @@ class LoggerBehaviorTest extends TestCase
         $this->Comments->activityLog($level, $message, $context);
 
         $logs = $this->ActivityLogs->find()
-            ->order(['id' => 'desc'])
+            ->orderByDesc('id')
             ->all()
             ->toArray();
 
@@ -486,7 +486,7 @@ class LoggerBehaviorTest extends TestCase
 
         $logs = $this->ActivityLogs->find()
             ->where(['scope_model' => 'TestApp.Authors'])
-            ->order(['id' => 'asc'])
+            ->orderByAsc('id')
             ->all()
             ->toArray();
 
@@ -548,7 +548,7 @@ class LoggerBehaviorTest extends TestCase
 
         $logs = $this->ActivityLogs->find()
             ->where(['scope_model' => 'TestApp.Authors'])
-            ->order(['id' => 'asc'])
+            ->orderByAsc('id')
             ->all()
             ->toArray();
 
@@ -586,7 +586,7 @@ class LoggerBehaviorTest extends TestCase
 
         $logs = $this->ActivityLogs->find()
             ->where(['scope_model' => 'TestApp.Authors'])
-            ->order(['id' => 'asc'])
+            ->orderByAsc('id')
             ->all()
             ->toArray();
 
@@ -614,26 +614,26 @@ class LoggerBehaviorTest extends TestCase
         ]);
         $this->Comments->setLogIssuer($user)->setLogScope([$article])->save($comment);
 
-        $authorLogs = $this->Authors->find('activity', ['scope' => $author])
+        $authorLogs = $this->Authors->find('activity', scope: $author)
             ->all()
             ->toArray();
         $this->assertCount(1, $authorLogs);
         $this->assertSame('TestApp.Articles', $authorLogs[0]->object_model);
-        $articleLogs = $this->Articles->find('activity', ['scope' => $article])
+        $articleLogs = $this->Articles->find('activity', scope: $article)
             ->all()
             ->toArray();
         $this->assertCount(2, $articleLogs);
         $this->assertSame(
             'TestApp.Comments',
             $articleLogs[0]->object_model,
-            'The latest one is displayed above'
+            'The latest one is displayed above',
         );
         $this->assertSame('TestApp.Articles', $articleLogs[1]->object_model);
-        $commentLogs = $this->Comments->find('activity', ['scope' => $comment])
+        $commentLogs = $this->Comments->find('activity', scope: $comment)
             ->all()
             ->toArray();
         $this->assertCount(0, $commentLogs);
-        $userLogs = $this->Users->find('activity', ['scope' => $user])
+        $userLogs = $this->Users->find('activity', scope: $user)
             ->all()
             ->toArray();
         $this->assertCount(1, $userLogs);
