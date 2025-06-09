@@ -9,7 +9,6 @@ use Cake\Controller\ComponentRegistry;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
-use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Table;
 use Cake\Utility\Hash;
@@ -32,7 +31,7 @@ class AutoIssuerComponent extends Component
     /**
      * Default configuration.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected array $_defaultConfig = [
         'userModel' => 'Users',
@@ -41,11 +40,11 @@ class AutoIssuerComponent extends Component
     ];
 
     /**
-     * A Logged in User
+     * A Logged-in User
      *
-     * @var \Cake\ORM\Entity|null
+     * @var \Cake\Datasource\EntityInterface|null
      */
-    protected ?Entity $issuer = null;
+    protected ?EntityInterface $issuer = null;
 
     /**
      * @var array<\Cake\ORM\Table>
@@ -55,7 +54,7 @@ class AutoIssuerComponent extends Component
     /**
      * AutoIssuerComponent constructor.
      *
-     * @param \Cake\Controller\ComponentRegistry $registry the ComponentRegistry
+     * @param \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller> $registry the ComponentRegistry
      * @param array $config the config option
      */
     public function __construct(ComponentRegistry $registry, array $config = [])
@@ -108,13 +107,13 @@ class AutoIssuerComponent extends Component
      * - get issuer from event data
      * - register issuer to the model
      *
-     * @param \Cake\Event\Event $event the Event
+     * @param \Cake\Event\Event<\Cake\Controller\Component> $event the Event
      * @return void
      * @noinspection PhpUnused
      */
     public function onAfterIdentifyAtAuthentication(Event $event): void
     {
-        /** @var \ArrayAccess $identity */
+        /** @var \ArrayAccess<string, mixed> $identity */
         $identity = $event->getData()['identity'] ?? null;
         $this->issuer = $this->getIssuerFromUserArray($identity);
 
@@ -133,24 +132,25 @@ class AutoIssuerComponent extends Component
      * - register the model to this component's table collection
      * - set issuer to the model
      *
-     * @param \Cake\Event\Event $event the event
+     * @param \Cake\Event\Event<\Cake\ORM\Table> $event the event
      * @return void
      */
     public function onInitializeModel(Event $event): void
     {
-        /** @var \Cake\Orm\Table $table */
+        /** @var \Cake\ORM\Table $table */
         $table = $event->getSubject();
         if (!array_key_exists($table->getRegistryAlias(), $this->tables)) {
             $this->tables[$table->getRegistryAlias()] = $table;
         }
 
-        // set issuer to the model, if logged-in user can get
+        // set issuer to the model if a logged-in user can get
         if (
             !empty($this->issuer) &&
             $table->behaviors()->hasMethod('setLogIssuer') &&
             $this->getTableLocator()->exists($this->issuer->getSource())
         ) {
-            $table->setLogIssuer($this->issuer);
+            // Call the method through behaviors() to ensure it exists
+            $table->behaviors()->call('setLogIssuer', [$this->issuer]);
         }
     }
 
@@ -179,7 +179,8 @@ class AutoIssuerComponent extends Component
     {
         foreach ($this->tables as $table) {
             if ($table->behaviors()->hasMethod('setLogIssuer')) {
-                $table->setLogIssuer($issuer);
+                // Call the method through behaviors() to ensure it exists
+                $table->behaviors()->call('setLogIssuer', [$issuer]);
             }
         }
     }
@@ -187,7 +188,7 @@ class AutoIssuerComponent extends Component
     /**
      * Get issuer from logged in user data
      *
-     * @param \ArrayAccess|array|null $user a User entity
+     * @param \ArrayAccess<string, mixed>|array|null $user a User entity
      * @return \Cake\Datasource\EntityInterface|null
      */
     private function getIssuerFromUserArray(array|ArrayAccess|null $user): ?EntityInterface
@@ -202,9 +203,12 @@ class AutoIssuerComponent extends Component
             return is_a($user, $table->getEntityClass()) ? $user : null;
         }
 
-        $userId = Hash::get($user, $table->getPrimaryKey());
-        if ($userId) {
-            return $table->find()->where([$table->getPrimaryKey() => $userId])->first();
+        $primaryKey = $table->getPrimaryKey();
+        if (is_string($primaryKey)) {
+            $userId = Hash::get($user, $primaryKey);
+            if ($userId) {
+                return $table->find()->where([$primaryKey => $userId])->first();
+            }
         }
 
         return null;

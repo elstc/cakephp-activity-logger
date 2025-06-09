@@ -16,7 +16,7 @@ use Cake\Validation\Validator;
  *
  * @method \Elastic\ActivityLogger\Model\Entity\ActivityLog get($primaryKey, array $options = [])
  */
-class ActivityLogsTable extends Table
+class ActivityLogsTable extends Table implements ActivityLogsTableInterface
 {
     use LocatorAwareTrait;
 
@@ -80,70 +80,72 @@ class ActivityLogsTable extends Table
     /**
      * find by scope
      *
-     * $table->find('scope', ['scope' => $entity])
+     * $table->find('scope', scope: $entity)
      *
-     * @param \Cake\ORM\Query\SelectQuery $query the Query
-     * @param array $options query options
-     * @return \Cake\ORM\Query\SelectQuery
+     * @param \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog> $query the Query
+     * @param \Cake\Datasource\EntityInterface|string|null $scope the scope entity
+     * @return \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog>
      */
-    public function findScope(SelectQuery $query, array $options): SelectQuery
+    public function findScope(SelectQuery $query, EntityInterface|string|null $scope = null): SelectQuery
     {
-        if (empty($options['scope'])) {
+        if (empty($scope)) {
             return $query;
         }
 
         $where = [];
-        if ($options['scope'] instanceof Entity) {
-            [$scopeModel, $scopeId] = $this->buildObjectParameter($options['scope']);
+        if ($scope instanceof EntityInterface) {
+            [$scopeModel, $scopeId] = $this->buildObjectParameter($scope);
             $where[$this->aliasField('scope_model')] = $scopeModel;
             $where[$this->aliasField('scope_id')] = $scopeId;
-        } elseif (is_string($options['scope'])) {
-            $where[$this->aliasField('scope_model')] = $options['scope'];
+        } elseif (is_string($scope)) {
+            $where[$this->aliasField('scope_model')] = $scope;
         }
+
         $query->where($where);
 
         return $query;
     }
 
     /**
-     * Find logs from system scope
+     * Find logs from the system scope
      *
      * $table->find('system')
      *
-     * @param \Cake\ORM\Query\SelectQuery $query the Query
-     * @param array $options query options
-     * @return \Cake\ORM\Query\SelectQuery
+     * @param \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog> $query the Query
+     * @return \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog>
      * @noinspection PhpUnused
      */
-    public function findSystem(SelectQuery $query, array $options): SelectQuery
+    public function findSystem(SelectQuery $query): SelectQuery
     {
-        $options['scope'] = '\\' . Configure::read('App.namespace');
+        $scope = '\\' . Configure::read('App.namespace');
 
-        return $this->findScope($query, $options);
+        return $this->findScope($query, scope: $scope);
     }
 
     /**
-     * Find logs with specific issuer
+     * Find logs with a specific issuer
      *
-     * $table->find('issuer', ['issuer' => $entity])
+     * $table->find('issuer', issuer: $entity)
      *
-     * @param \Cake\ORM\Query\SelectQuery $query the Query
-     * @param array $options query options
-     * @return \Cake\ORM\Query\SelectQuery
+     * @param \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog> $query the Query
+     * @param \Cake\Datasource\EntityInterface|null $issuer the issuer entity
+     * @return \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog>
      * @noinspection PhpUnused
      */
-    public function findIssuer(SelectQuery $query, array $options): SelectQuery
+    public function findIssuer(SelectQuery $query, ?EntityInterface $issuer = null): SelectQuery
     {
-        if (empty($options['issuer'])) {
+        if (empty($issuer)) {
             return $query;
         }
 
         $where = [];
-        if ($options['issuer'] instanceof Entity) {
-            [$scopeModel, $scopeId] = $this->buildObjectParameter($options['issuer']);
+        if ($issuer instanceof EntityInterface) {
+            [$scopeModel, $scopeId] = $this->buildObjectParameter($issuer);
+
             $where[$this->aliasField('issuer_model')] = $scopeModel;
             $where[$this->aliasField('issuer_id')] = $scopeId;
         }
+
         $query->where($where);
 
         return $query;
