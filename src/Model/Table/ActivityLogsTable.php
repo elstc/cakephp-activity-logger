@@ -7,7 +7,7 @@ use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
@@ -82,11 +82,11 @@ class ActivityLogsTable extends Table
      *
      * $table->find('scope', ['scope' => $entity])
      *
-     * @param \Cake\ORM\Query $query the Query
+     * @param \Cake\ORM\Query\SelectQuery $query the Query
      * @param array $options query options
-     * @return \Cake\ORM\Query
+     * @return \Cake\ORM\Query\SelectQuery
      */
-    public function findScope(Query $query, array $options): Query
+    public function findScope(SelectQuery $query, array $options): SelectQuery
     {
         if (empty($options['scope'])) {
             return $query;
@@ -110,12 +110,12 @@ class ActivityLogsTable extends Table
      *
      * $table->find('system')
      *
-     * @param \Cake\ORM\Query $query the Query
+     * @param \Cake\ORM\Query\SelectQuery $query the Query
      * @param array $options query options
-     * @return \Cake\ORM\Query
+     * @return \Cake\ORM\Query\SelectQuery
      * @noinspection PhpUnused
      */
-    public function findSystem(Query $query, array $options): Query
+    public function findSystem(SelectQuery $query, array $options): SelectQuery
     {
         $options['scope'] = '\\' . Configure::read('App.namespace');
 
@@ -127,12 +127,12 @@ class ActivityLogsTable extends Table
      *
      * $table->find('issuer', ['issuer' => $entity])
      *
-     * @param \Cake\ORM\Query $query the Query
+     * @param \Cake\ORM\Query\SelectQuery $query the Query
      * @param array $options query options
-     * @return \Cake\ORM\Query
+     * @return \Cake\ORM\Query\SelectQuery
      * @noinspection PhpUnused
      */
-    public function findIssuer(Query $query, array $options): Query
+    public function findIssuer(SelectQuery $query, array $options): SelectQuery
     {
         if (empty($options['issuer'])) {
             return $query;

@@ -9,7 +9,7 @@ use Cake\Event\Event;
 use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorAwareTrait;
-use Cake\ORM\Query;
+use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\Table;
 use Elastic\ActivityLogger\Model\Entity\ActivityLog;
 use Elastic\ActivityLogger\Model\Table\ActivityLogsTable;
@@ -298,12 +298,12 @@ class LoggerBehavior extends Behavior
      *
      * $table->find('activity', ['scope' => $entity])
      *
-     * @param \Cake\ORM\Query $query the query
+     * @param \Cake\ORM\Query\SelectQuery $query the query
      * @param array $options find options
-     * @return \Cake\ORM\Query
+     * @return \Cake\ORM\Query\SelectQuery
      * @noinspection PhpUnusedParameterInspection
      */
-    public function findActivity(Query $query, array $options): Query
+    public function findActivity(SelectQuery $query, array $options): SelectQuery
     {
         $logTable = $this->getLogTable();
         $logQuery = $logTable->find();
