@@ -16,6 +16,8 @@ use TestApp\Model\Table\UsersTable;
 
 /**
  * Elastic\ActivityLogger\Model\Behavior\LoggerBehavior Test Case
+ *
+ * @coversDefaultClass \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior
  */
 class LoggerBehaviorTest extends TestCase
 {
@@ -640,5 +642,53 @@ class LoggerBehaviorTest extends TestCase
         $this->Logger->activityLog(LogLevel::DEBUG, 'alter test log');
 
         $this->assertTrue(true, 'Do not throws any exception');
+    }
+
+    /**
+     * @return void
+     * @covers ::disableActivityLog
+     * @covers ::enableActivityLog
+     */
+    public function testDisableLogging(): void
+    {
+        // -- Disable logging
+        $this->Authors->disableActivityLog();
+
+        // -- Create a new author
+        $author = $this->Authors->newEntity([
+            'username' => 'foo',
+            'password' => 'bar',
+        ]);
+        $this->Authors->saveOrFail($author);
+        // Saved ActivityLogs
+        $this->assertCount(0, $this->ActivityLogs->find()->all(), 'not record logs, because logging is disabled');
+
+        // -- Edit the author
+        $author->setNew(false);
+        $author->clean();
+        $author = $this->Authors->patchEntity($author, ['username' => 'anonymous']);
+        $this->Authors->saveOrFail($author);
+
+        // Saved ActivityLogs
+        $this->assertCount(0, $this->ActivityLogs->find()->all(), 'not record logs, because logging is disabled');
+
+        // -- Delete the author
+        $this->Authors->deleteOrFail($author);
+
+        // Saved ActivityLogs
+        $this->assertCount(0, $this->ActivityLogs->find()->all(), 'not record logs, because logging is disabled');
+
+        // -- Enable logging
+        $this->Authors->enableActivityLog();
+
+        // -- Create a new author
+        $author = $this->Authors->newEntity([
+            'username' => 'foo',
+            'password' => 'bar',
+        ]);
+        $this->Authors->saveOrFail($author);
+
+        // Saved ActivityLogs
+        $this->assertGreaterThan(0, $this->ActivityLogs->find()->count(), 'record logs, because logging is enabled');
     }
 }

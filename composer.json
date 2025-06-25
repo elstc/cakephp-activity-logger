@@ -14,7 +14,8 @@
         "cakephp/authentication": "^2.0",
         "cakephp/cakephp-codesniffer": "^4.6",
         "cakephp/migrations": "^3.4",
-        "phpunit/phpunit": "^8.5 || ^9.3"
+        "phpunit/phpunit": "^8.5 || ^9.3",
+        "slevomat/coding-standard": "^7.0"
     },
     "autoload": {
         "psr-4": {
