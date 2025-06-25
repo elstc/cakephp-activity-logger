@@ -62,6 +62,8 @@ class LoggerBehavior extends Behavior
             'setLogMessage' => 'setLogMessage',
             'setLogScope' => 'setLogScope',
             'resetLogScope' => 'resetLogScope',
+            'disableActivityLog' => 'disableActivityLog',
+            'enableActivityLog' => 'enableActivityLog',
         ],
     ];
 
@@ -73,6 +75,26 @@ class LoggerBehavior extends Behavior
         return parent::implementedEvents() + [
                 'Model.initialize' => 'afterInit',
             ];
+    }
+
+    /**
+     * Disable activity log
+     *
+     * @return void
+     */
+    public function disableActivityLog(): void
+    {
+        $this->_table->getEventManager()->off($this);
+    }
+
+    /**
+     * Enable activity log
+     *
+     * @return void
+     */
+    public function enableActivityLog(): void
+    {
+        $this->_table->getEventManager()->on($this);
     }
 
     /**
