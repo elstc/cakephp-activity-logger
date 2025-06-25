@@ -203,6 +203,7 @@ class AutoIssuerComponent extends Component
         }
 
         $property = $reflectionClass->getProperty('instances');
+        $property->setAccessible(true);
         $instances = $property->getValue($locator);
 
         if (!is_array($instances)) {
