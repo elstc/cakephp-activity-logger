@@ -124,35 +124,6 @@ class AppController extends Controller
 }
 ```
 
-If there is load to any Table class before the execution of `Controller.startup` event,
-please describe `initializedTables` option.
-
-eg: 
-
-```php
-// In AppController
-class AppController extends Controller
-{
-    public function initialize()
-    {
-        $this->loadModel('Articles');
-        $this->loadModel('Awesome.Favorites');
-
-        // ...
-
-        $this->loadComponent('Elastic/ActivityLogger.AutoIssuer', [
-            'userModel' => 'Users',
-            'initializedTables' => [
-                'Articles',
-                'Awesome.Favorites',
-            ],
-        ]);
-
-        // ...
-    }
-}
-```
-
 ### Activity Logging with Scope
 
 ```php

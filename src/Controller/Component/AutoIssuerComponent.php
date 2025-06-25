@@ -5,23 +5,23 @@ namespace Elastic\ActivityLogger\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\Controller\Component\AuthComponent;
-use Cake\Controller\ComponentRegistry;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
+use Cake\Log\Log;
 use Cake\ORM\Locator\LocatorAwareTrait;
+use Cake\ORM\Table;
 use Cake\Utility\Hash;
+use ReflectionClass;
 
 /**
  * AutoIssuer component
  *
- * Get authentication information from Authentication plugin (or AuthComponent) and set it to each Table as Issuer.
+ * Get authentication information from the Authentication plugin (or AuthComponent) and set it to each Table as Issuer.
  *
  * config:
  *  'userModel': Set Identifiers 'userModel'.
  *  'identityAttribute': The request attribute used to store the identity.
- *  'initializedTables': If there is load to the Table class before the execution of `Controller.startup` event,
- *                       please describe here.
  */
 class AutoIssuerComponent extends Component
 {
@@ -30,7 +30,7 @@ class AutoIssuerComponent extends Component
     /**
      * Default configuration.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $_defaultConfig = [
         'userModel' => 'Users',
@@ -39,32 +39,19 @@ class AutoIssuerComponent extends Component
     ];
 
     /**
-     * A Logged in User
+     * A Logged-in User
      *
-     * @var \Cake\ORM\Entity|null
+     * @var \Cake\Datasource\EntityInterface|null
      */
     protected $issuer;
 
     /**
-     * @var \Cake\ORM\Table[]
+     * @var array<\Cake\ORM\Table>
      */
     protected $tables = [];
 
     /**
-     * AutoIssuerComponent constructor.
-     *
-     * @param \Cake\Controller\ComponentRegistry $registry the ComponentRegistry
-     * @param array $config the config option
-     */
-    public function __construct(ComponentRegistry $registry, array $config = [])
-    {
-        parent::__construct($registry, $config);
-
-        $this->setInitializedTables($this->getConfig('initializedTables'));
-    }
-
-    /**
-     * @return array
+     * @return array<string, string>
      */
     public function implementedEvents(): array
     {
@@ -107,6 +94,8 @@ class AutoIssuerComponent extends Component
             return;
         }
 
+        $this->tables = $this->getInitializedTables();
+
         // register issuer to the model
         $this->setIssuerToAllModel($this->issuer);
     }
@@ -132,6 +121,8 @@ class AutoIssuerComponent extends Component
             return;
         }
 
+        $this->tables = $this->getInitializedTables();
+
         // register issuer to the model
         $this->setIssuerToAllModel($this->issuer);
     }
@@ -142,7 +133,7 @@ class AutoIssuerComponent extends Component
      * - get issuer from event data
      * - register issuer to the model
      *
-     * @param \Cake\Event\Event $event the Event
+     * @param \Cake\Event\Event<\Cake\Controller\Component> $event the Event
      * @return void
      * @noinspection PhpUnused
      */
@@ -157,6 +148,8 @@ class AutoIssuerComponent extends Component
             return;
         }
 
+        $this->tables = $this->getInitializedTables();
+
         // register issuer to the model
         $this->setIssuerToAllModel($this->issuer);
     }
@@ -167,7 +160,7 @@ class AutoIssuerComponent extends Component
      * - register the model to this component's table collection
      * - set issuer to the model
      *
-     * @param \Cake\Event\Event $event the event
+     * @param \Cake\Event\Event<\Cake\ORM\Table> $event the event
      * @return void
      */
     public function onInitializeModel(Event $event): void
@@ -178,42 +171,61 @@ class AutoIssuerComponent extends Component
             $this->tables[$table->getRegistryAlias()] = $table;
         }
 
-        // set issuer to the model, if logged-in user can get
+        // set issuer to the model if a logged-in user can get
         if (
             !empty($this->issuer) &&
             $table->behaviors()->hasMethod('setLogIssuer') &&
             $this->getTableLocator()->exists($this->issuer->getSource())
         ) {
-            $table->setLogIssuer($this->issuer);
+            // Call the method through behaviors() to ensure it exists
+            $table->behaviors()->call('setLogIssuer', [$this->issuer]);
         }
     }
 
     /**
-     * Set initialized models to this component's table collection
+     * Get initialized models from the TableLocator
      *
-     * @param array $tables tables
-     * @return void
+     * Note: This method uses reflection to access the internal instances property
+     * of the TableLocator. This approach may be fragile and could break if
+     * CakePHP changes its internal implementation.
+     *
+     * @return array<string, \Cake\ORM\Table>
      */
-    private function setInitializedTables(array $tables): void
+    private function getInitializedTables(): array
     {
-        foreach ($tables as $tableName) {
-            if ($this->getTableLocator()->exists($tableName)) {
-                $this->tables[$tableName] = $this->getTableLocator()->get($tableName);
-            }
+        $locator = $this->getTableLocator();
+        $reflectionClass = new ReflectionClass($locator);
+
+        if (!$reflectionClass->hasProperty('instances')) {
+            Log::debug('TableLocator does not have instances property, returning empty array');
+
+            return [];
         }
+
+        $property = $reflectionClass->getProperty('instances');
+        $instances = $property->getValue($locator);
+
+        if (!is_array($instances)) {
+            Log::debug('TableLocator instances property is not an array, returning empty array');
+
+            return [];
+        }
+
+        return $instances;
     }
 
     /**
      * Set issuer to all models
      *
-     * @param \Cake\Datasource\EntityInterface $issuer A issuer
+     * @param \Cake\Datasource\EntityInterface $issuer An issuer
      * @return void
      */
     private function setIssuerToAllModel(EntityInterface $issuer): void
     {
         foreach ($this->tables as $table) {
             if ($table->behaviors()->hasMethod('setLogIssuer')) {
-                $table->setLogIssuer($issuer);
+                // Call the method through behaviors() to ensure it exists
+                $table->behaviors()->call('setLogIssuer', [$issuer]);
             }
         }
     }
@@ -221,7 +233,7 @@ class AutoIssuerComponent extends Component
     /**
      * Get issuer from logged in user data
      *
-     * @param array|\ArrayAccess|null $user a User entity
+     * @param \ArrayAccess<string, mixed>|array<string, mixed>|null $user a User entity
      * @return \Cake\Datasource\EntityInterface|null
      */
     private function getIssuerFromUserArray($user): ?EntityInterface
@@ -231,9 +243,17 @@ class AutoIssuerComponent extends Component
         }
 
         $table = $this->getUserModel();
-        $userId = Hash::get($user, $table->getPrimaryKey());
-        if ($userId) {
-            return $table->get($userId);
+
+        if ($user instanceof EntityInterface && $user->getSource()) {
+            return is_a($user, $table->getEntityClass()) ? $user : null;
+        }
+
+        $primaryKey = $table->getPrimaryKey();
+        if (is_string($primaryKey)) {
+            $userId = Hash::get($user, $primaryKey);
+            if ($userId) {
+                return $table->find()->where([$primaryKey => $userId])->first();
+            }
         }
 
         return null;
@@ -244,8 +264,8 @@ class AutoIssuerComponent extends Component
      *
      * @return \Cake\ORM\Table
      */
-    private function getUserModel(): \Cake\ORM\Table
+    private function getUserModel(): Table
     {
-        return $this->getTableLocator()->get($this->getConfig('userModel'));
+        return $this->fetchTable($this->getConfig('userModel'));
     }
 }

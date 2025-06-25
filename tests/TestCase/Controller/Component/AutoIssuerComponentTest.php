@@ -19,6 +19,8 @@ use TestApp\Model\Table\CommentsTable;
 
 /**
  * Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent Test Case
+ *
+ * @coversDefaultClass \Elastic\ActivityLogger\Controller\Component\AutoIssuerComponent
  */
 class AutoIssuerComponentTest extends TestCase
 {
@@ -78,10 +80,6 @@ class AutoIssuerComponentTest extends TestCase
         $this->registry = new ComponentRegistry(new Controller($this->request));
         $this->AutoIssuer = new AutoIssuerComponent($this->registry, [
             'userModel' => 'TestApp.Users',
-            'initializedTables' => [
-                'TestApp.Articles',
-                'TestApp.Comments',
-            ],
         ]);
 
         EventManager::instance()->on($this->AutoIssuer);
@@ -109,7 +107,6 @@ class AutoIssuerComponentTest extends TestCase
         // Check default config value
         $component = new AutoIssuerComponent($this->registry);
         $this->assertSame('Users', $component->getConfig('userModel'));
-        $this->assertSame([], $component->getConfig('initializedTables'));
     }
 
     /**
@@ -118,6 +115,9 @@ class AutoIssuerComponentTest extends TestCase
      * - Work with Authentication plugin
      *
      * @return void
+     * @covers ::startup
+     * @covers ::getInitializedTables
+     * @covers ::setIssuerToAllModel
      */
     public function testStartupWithAuthenticationPlugin(): void
     {
@@ -133,14 +133,13 @@ class AutoIssuerComponentTest extends TestCase
         $event = new Event('Controller.startup');
         EventManager::instance()->dispatch($event);
 
-        // The model defined in `initializedTables` will set an issuer
+        // An issuer is set to all models that have been called using the TableLocator
+        $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
+        $this->assertSame(1, $this->Authors->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
         $this->assertSame(1, $this->Articles->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
         $this->assertSame(1, $this->Comments->getLogIssuer()->id);
-
-        // The model undefined in `initializedTables` not set the issuer
-        $this->assertNull($this->Authors->getLogIssuer());
     }
 
     /**
@@ -190,14 +189,13 @@ class AutoIssuerComponentTest extends TestCase
         $event = new Event('Controller.startup');
         EventManager::instance()->dispatch($event);
 
-        // The model defined in `initializedTables` will set an issuer
+        // An issuer is set to all models that have been called using the TableLocator
+        $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
+        $this->assertSame(1, $this->Authors->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
         $this->assertSame(1, $this->Articles->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
         $this->assertSame(1, $this->Comments->getLogIssuer()->id);
-
-        // The model undefined in `initializedTables` not set the issuer
-        $this->assertNull($this->Authors->getLogIssuer());
     }
 
     /**
@@ -230,6 +228,7 @@ class AutoIssuerComponentTest extends TestCase
      * Test AuthComponent Auth.afterIdentify Event hook
      *
      * @return void
+     * @covers ::onAfterIdentifyAtAuth
      */
     public function testOnAuthAfterIdentify(): void
     {
@@ -238,14 +237,13 @@ class AutoIssuerComponentTest extends TestCase
         $event->setData([['id' => 2], new BasicAuthenticate($this->registry)]);
         EventManager::instance()->dispatch($event);
 
-        // The model defined in `initializedTables` will set an issuer
+        // An issuer is set to all models that have been called using the TableLocator
+        $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
+        $this->assertSame(2, $this->Authors->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
         $this->assertSame(2, $this->Articles->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
         $this->assertSame(2, $this->Comments->getLogIssuer()->id);
-
-        // The model undefined in `initializedTables` not set the issuer
-        $this->assertNull($this->Authors->getLogIssuer());
     }
 
     /**
@@ -260,14 +258,13 @@ class AutoIssuerComponentTest extends TestCase
         $event->setData(['identity' => new \ArrayObject(['id' => 2])]);
         EventManager::instance()->dispatch($event);
 
-        // The model defined in `initializedTables` will set an issuer
+        // An issuer is set to all models that have been called using the TableLocator
+        $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
+        $this->assertSame(2, $this->Authors->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Articles->getLogIssuer());
         $this->assertSame(2, $this->Articles->getLogIssuer()->id);
         $this->assertInstanceOf(User::class, $this->Comments->getLogIssuer());
         $this->assertSame(2, $this->Comments->getLogIssuer()->id);
-
-        // The model undefined in `initializedTables` not set the issuer
-        $this->assertNull($this->Authors->getLogIssuer());
     }
 
     /**
