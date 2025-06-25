@@ -1,5 +1,7 @@
 # ActivityLogger plugin for CakePHP 5.x
 
+Automatically logs database CRUD operations (create, update, delete) with configurable scope and issuer tracking for CakePHP applications.
+
 <p style="text-align: center">
     <a href="LICENSE.txt" target="_blank">
         <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
@@ -15,6 +17,13 @@
     </a>
 </p>
 
+## Requirements
+
+- PHP 8.1 or higher
+- CakePHP 5.0 or higher
+- PDO extension
+- JSON extension
+
 ## Installation
 
 You can install this plugin into your CakePHP application using [composer](http://getcomposer.org).
@@ -29,18 +38,17 @@ composer require elstc/cakephp-activity-logger:^3.0
 
 Load the plugin by adding the following statement in your project's `src/Application.php`:
 
-```
+```php
 $this->addPlugin('Elastic/ActivityLogger');
 ```
 
-### Create activity_logs table
+### Create the activity_logs table
 
 run migration command:
 
 ```
 bin/cake migrations migrate -p Elastic/ActivityLogger
 ```
-
 
 ## Usage
 
@@ -49,7 +57,6 @@ bin/cake migrations migrate -p Elastic/ActivityLogger
 ```php
 class ArticlesTable extends Table
 {
-
     public function initialize(array $config): void
     {
         // ...
@@ -62,31 +69,30 @@ class ArticlesTable extends Table
         ]);
     }
 }
-
 ```
 
 ### Activity Logging Basis
 
 #### logging on create
 ```php
-$artice = $this-Articles->newEnity([ /* ... */ ]);
-$this->Articles->save($artice);
+$article = $this->Articles->newEntity([ /* ... */ ]);
+$this->Articles->save($article);
 // saved log
 // [action='create', scope_model='Articles', scope_id=$article->id]
 ```
 
 #### logging on update
 ```php
-$artice = $this-Articles->patchEnity(artice, [ /* ... */ ]);
-$this->Articles->save($artice);
+$article = $this->Articles->patchEntity($article, [ /* ... */ ]);
+$this->Articles->save($article);
 // saved log
 // [action='update', scope_model='Articles', scope_id=$article->id]
 ```
 
 #### logging on delete
 ```php
-$artice = $this-Articles->get($id);
-$this->Articles->delete($artice);
+$article = $this->Articles->get($id);
+$this->Articles->delete($article);
 // saved log
 // [action='delete', scope_model='Articles', scope_id=$article->id]
 ```
@@ -96,18 +102,18 @@ $this->Articles->delete($artice);
 ```php
 $this->Articles->setLogIssuer($author); // Set issuer
 
-$artice = $this-Articles->newEnity([ /* ... */ ]);
-$this->Articles->save($artice);
+$article = $this->Articles->newEntity([ /* ... */ ]);
+$this->Articles->save($article);
 
 // saved log
 // [action='create', scope_model='Articles', scope_id=$article->id, ...]
 // and
-// [action='create', scope_model='Auhtors', scope_id=$author->id, ...]
+// [action='create', scope_model='Authors', scope_id=$author->id, ...]
 ```
 
 #### AutoIssuerComponent
 
-If you using `Authorization` plugin or `AuthComponent`, the `AutoIssuerComponent` will help set issuer to Tables.
+If you're using `Authorization` plugin or `AuthComponent`, the `AutoIssuerComponent` will help set issuer to Tables.
 
 ```php
 // In AppController
@@ -129,7 +135,6 @@ class AppController extends Controller
 ```php
 class CommentsTable extends Table
 {
-
     public function initialize(array $config): void
     {
         // ...
@@ -143,29 +148,27 @@ class CommentsTable extends Table
         ]);
     }
 }
-
 ```
 
 ```php
 $this->Comments->setLogScope([$user, $article]); // Set scope
 
-$comment = $this-Comments->newEnity([ /* ... */ ]);
+$comment = $this->Comments->newEntity([ /* ... */ ]);
 $this->Comments->save($comment);
 
 // saved log
-// [action='create', scope_model='Users', scope_id=$article->id, ...]
+// [action='create', scope_model='Users', scope_id=$user->id, ...]
 // and
-// [action='create', scope_model='Articles', scope_id=$author->id, ...]
+// [action='create', scope_model='Articles', scope_id=$article->id, ...]
 ```
 
-### Activity Logging with message
+### Activity Logging with a message
 
 use `setLogMessageBuilder` method. You can generate any message for each action in the log.
 
 ```php
 class ArticlesTable extends Table
 {
-
     public function initialize(array $config): void
     {
         // ...
@@ -176,6 +179,7 @@ class ArticlesTable extends Table
                 'Authors',
             ],
         ]);
+
         // ADD THIS
         $this->setLogMessageBuilder(static function (ActivityLog $log, array $context) {
             if ($log->message !== null) {
@@ -203,7 +207,6 @@ class ArticlesTable extends Table
         });
     }
 }
-
 ```
 
 Or use `setLogMessage` before save|delete action. You can set a log message. 
@@ -220,7 +223,7 @@ $this->Articles->save($entity);
 ```php
 $this->Articles->activityLog(\Psr\Log\LogLevel::NOTICE, 'Custom Messages', [
   'action' => 'custom',
-  'object' => $artice,
+  'object' => $article,
 ]);
 
 // saved log
