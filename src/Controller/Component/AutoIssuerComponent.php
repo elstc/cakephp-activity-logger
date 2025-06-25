@@ -5,24 +5,23 @@ namespace Elastic\ActivityLogger\Controller\Component;
 
 use ArrayAccess;
 use Cake\Controller\Component;
-use Cake\Controller\ComponentRegistry;
 use Cake\Datasource\EntityInterface;
 use Cake\Event\Event;
 use Cake\Event\EventManager;
+use Cake\Log\Log;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Table;
 use Cake\Utility\Hash;
+use ReflectionClass;
 
 /**
  * AutoIssuer component
  *
- * Get authentication information from Authentication plugin (or AuthComponent) and set it to each Table as Issuer.
+ * Get authentication information from the Authentication plugin (or AuthComponent) and set it to each Table as Issuer.
  *
  * config:
  *  'userModel': Set Identifiers 'userModel'.
  *  'identityAttribute': The request attribute used to store the identity.
- *  'initializedTables': If there is load to the Table class before the execution of `Controller.startup` event,
- *                       please describe here.
  */
 class AutoIssuerComponent extends Component
 {
@@ -36,7 +35,6 @@ class AutoIssuerComponent extends Component
     protected array $_defaultConfig = [
         'userModel' => 'Users',
         'identityAttribute' => 'identity',
-        'initializedTables' => [],
     ];
 
     /**
@@ -50,19 +48,6 @@ class AutoIssuerComponent extends Component
      * @var array<\Cake\ORM\Table>
      */
     protected array $tables = [];
-
-    /**
-     * AutoIssuerComponent constructor.
-     *
-     * @param \Cake\Controller\ComponentRegistry<\Cake\Controller\Controller> $registry the ComponentRegistry
-     * @param array<string, mixed> $config the config option
-     */
-    public function __construct(ComponentRegistry $registry, array $config = [])
-    {
-        parent::__construct($registry, $config);
-
-        $this->setInitializedTables($this->getConfig('initializedTables'));
-    }
 
     /**
      * @return array<string, string>
@@ -97,6 +82,8 @@ class AutoIssuerComponent extends Component
             return;
         }
 
+        $this->tables = $this->getInitializedTables();
+
         // register issuer to the model
         $this->setIssuerToAllModel($this->issuer);
     }
@@ -121,6 +108,8 @@ class AutoIssuerComponent extends Component
             // not logged in
             return;
         }
+
+        $this->tables = $this->getInitializedTables();
 
         // register issuer to the model
         $this->setIssuerToAllModel($this->issuer);
@@ -155,18 +144,35 @@ class AutoIssuerComponent extends Component
     }
 
     /**
-     * Set initialized models to this component's table collection
+     * Get initialized models from the TableLocator
      *
-     * @param array<string> $tables tables
-     * @return void
+     * Note: This method uses reflection to access the internal instances property
+     * of the TableLocator. This approach may be fragile and could break if
+     * CakePHP changes its internal implementation.
+     *
+     * @return array<string, \Cake\ORM\Table>
      */
-    private function setInitializedTables(array $tables): void
+    private function getInitializedTables(): array
     {
-        foreach ($tables as $tableName) {
-            if ($this->getTableLocator()->exists($tableName)) {
-                $this->tables[$tableName] = $this->fetchTable($tableName);
-            }
+        $locator = $this->getTableLocator();
+        $reflectionClass = new ReflectionClass($locator);
+
+        if (!$reflectionClass->hasProperty('instances')) {
+            Log::debug('TableLocator does not have instances property, returning empty array');
+
+            return [];
         }
+
+        $property = $reflectionClass->getProperty('instances');
+        $instances = $property->getValue($locator);
+
+        if (!is_array($instances)) {
+            Log::debug('TableLocator instances property is not an array, returning empty array');
+
+            return [];
+        }
+
+        return $instances;
     }
 
     /**
