@@ -16,6 +16,8 @@ use Elastic\ActivityLogger\Lib\AutoIssuerTrait;
  * Config:
  *  'userModel': Set Identifiers 'userModel'.
  *  'identityAttribute': The request attribute used to store the identity.
+ *
+ * @deprecated 3.3.0 Use \Elastic\ActivityLogger\Http\AutoIssuerMiddleware instead.
  */
 class AutoIssuerComponent extends Component
 {
