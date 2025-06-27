@@ -52,7 +52,7 @@ class CreateActivityLogs extends AbstractMigration
                 'null'    => true,
             ])
             ->addColumn('level', 'string', [
-                'comment' => 'ログレベル',
+                'comment' => 'Log level',
                 'default' => null,
                 'limit'   => 16,
                 'null'    => false,

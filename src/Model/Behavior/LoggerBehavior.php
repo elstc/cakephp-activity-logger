@@ -547,7 +547,7 @@ class LoggerBehavior extends Behavior
     }
 
     /**
-     * scope設定
+     * Build scope configuration
      *
      * @param \Cake\Datasource\EntityInterface|array<string>|array<\Cake\Datasource\EntityInterface>|string $value the scope
      * @return array<string, int|string|null> ['Scope.Key' => 'scope id', ...]

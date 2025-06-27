@@ -148,7 +148,7 @@ class LoggerBehaviorTest extends TestCase
         $this->assertEquals([
             'username' => 'anonymous',
         ], $log->data, 'recorded the data at the time of updating');
-        $this->assertArrayNotHasKey('password', $log->data, 'Does not recorded hidden values。');
+        $this->assertArrayNotHasKey('password', $log->data, 'Does not recorded hidden values.');
     }
 
     public function testDelete(): void
@@ -171,7 +171,7 @@ class LoggerBehaviorTest extends TestCase
             'created' => '2007-03-17T01:16:23+00:00',
             'updated' => '2007-03-17T01:18:31+00:00',
         ], $log->data, 'recorded the data at the time of deleting');
-        $this->assertArrayNotHasKey('password', $log->data, 'Does not recorded hidden values。');
+        $this->assertArrayNotHasKey('password', $log->data, 'Does not recorded hidden values.');
     }
 
     public function testLogScope(): void
@@ -204,7 +204,7 @@ class LoggerBehaviorTest extends TestCase
         // Add scope
         $this->Articles->setLogScope($this->Comments->get(3));
         $this->Articles->setLogScope('Custom');
-        $this->Articles->setLogScope(['Another' => 4, 'Foo' => '005', 'Hoge']);
+        $this->Articles->setLogScope(['Another' => 4, 'Foo' => '005', 'Bar']);
         $this->assertSame([
             'TestApp.Articles' => 2,
             'TestApp.Authors' => 1,
@@ -213,7 +213,7 @@ class LoggerBehaviorTest extends TestCase
             'Custom' => true,
             'Another' => 4,
             'Foo' => '005',
-            'Hoge' => true,
+            'Bar' => true,
         ], $this->Articles->getLogScope(), 'updated log scope');
         // Reset scope
         $this->Articles->resetLogScope();
@@ -254,7 +254,7 @@ class LoggerBehaviorTest extends TestCase
         // Add scope
         $this->Articles->setLogScope($this->Comments->get(3));
         $this->Articles->setLogScope('Custom');
-        $this->Articles->setLogScope(['Another' => 4, 'Foo' => '005', 'Hoge']);
+        $this->Articles->setLogScope(['Another' => 4, 'Foo' => '005', 'Bar']);
         $this->assertSame([
             'TestApp.Articles' => 2,
             'TestApp.Authors' => 1,
@@ -263,7 +263,7 @@ class LoggerBehaviorTest extends TestCase
             'Custom' => true,
             'Another' => 4,
             'Foo' => '005',
-            'Hoge' => true,
+            'Bar' => true,
         ], $this->Articles->getLogScope(), 'will reset log scope');
         // Reset scope
         $this->Articles->resetLogScope();
@@ -355,7 +355,7 @@ class LoggerBehaviorTest extends TestCase
         /** @var ActivityLog $log */
         $log = $this->ActivityLogs->find()->orderByDesc('id')->first();
         $this->assertSame('TestApp.Users', $log->issuer_model, 'will set issuer model');
-        $this->assertEquals($user->id, $log->issuer_id, '発行者が指定されている');
+        $this->assertEquals($user->id, $log->issuer_id, 'will set issuer id');
 
         $article = $this->Articles->get(2);
         $user = $this->Users->get(1);
@@ -450,13 +450,13 @@ class LoggerBehaviorTest extends TestCase
             $issuer = $context['issuer'] ?: null;
             switch ($log->action) {
                 case ActivityLog::ACTION_CREATE:
-                    $message = sprintf('%3$s が記事 #%1$s「%2$s」を作成しました。', $object->id, $object->title, $issuer->username);
+                    $message = sprintf('%3$s created article #%1$s "%2$s".', $object->id, $object->title, $issuer->username);
                     break;
                 case ActivityLog::ACTION_UPDATE:
-                    $message = sprintf('%3$s が記事 #%1$s「%2$s」を更新しました。', $object->id, $object->title, $issuer->username);
+                    $message = sprintf('%3$s updated article #%1$s "%2$s".', $object->id, $object->title, $issuer->username);
                     break;
                 case ActivityLog::ACTION_DELETE:
-                    $message = sprintf('%3$s が記事 #%1$s「%2$s」を削除しました。', $object->id, $object->title, $issuer->username);
+                    $message = sprintf('%3$s deleted article #%1$s "%2$s".', $object->id, $object->title, $issuer->username);
                     break;
                 default:
                     break;
@@ -465,22 +465,22 @@ class LoggerBehaviorTest extends TestCase
             return $message;
         });
 
-        // Create new article
+        // Create a new article
         $author = $this->Authors->get(1);
         $article = $this->Articles->newEntity([
-            'title' => 'バージョン1.0リリース',
-            'body' => '新しいバージョン 1.0 をリリースしました。',
+            'title' => 'Version 1.0 Release',
+            'body' => 'We have released the new version 1.0.',
             'author' => $author,
         ]);
         $this->Articles->setLogIssuer($author);
         $this->Articles->save($article);
 
         // Update the article
-        $article->title = 'バージョン1.0 stableリリース';
+        $article->title = 'Version 1.0 stable release';
         $this->Articles->save($article);
 
         // Record custom log
-        $this->Articles->activityLog(LogLevel::NOTICE, '記事を更新しています。');
+        $this->Articles->activityLog(LogLevel::NOTICE, 'Updating the article.');
 
         // Deleting by another user
         $this->Articles->setLogIssuer($this->Authors->get(2));
@@ -493,12 +493,15 @@ class LoggerBehaviorTest extends TestCase
             ->toArray();
 
         $this->assertCount(4, $logs);
-        $this->assertSame('mariano が記事 #4「バージョン1.0リリース」を作成しました。', $logs[0]->message);
-        $this->assertSame('mariano が記事 #4「バージョン1.0 stableリリース」を更新しました。', $logs[1]->message);
-        $this->assertSame('記事を更新しています。', $logs[2]->message);
-        $this->assertSame('nate が記事 #4「バージョン1.0 stableリリース」を削除しました。', $logs[3]->message);
+        $this->assertSame('mariano created article #4 "Version 1.0 Release".', $logs[0]->message);
+        $this->assertSame('mariano updated article #4 "Version 1.0 stable release".', $logs[1]->message);
+        $this->assertSame('Updating the article.', $logs[2]->message);
+        $this->assertSame('nate deleted article #4 "Version 1.0 stable release".', $logs[3]->message);
     }
 
+    /**
+     * @return void
+     */
     public function testLogMessageBuilderSetterGetter(): void
     {
         $this->assertNull($this->Articles->getLogMessageBuilder());
@@ -512,13 +515,13 @@ class LoggerBehaviorTest extends TestCase
             $issuer = $context['issuer'] ?: null;
             switch ($log->action) {
                 case ActivityLog::ACTION_CREATE:
-                    $message = sprintf('%3$s が記事 #%1$s「%2$s」を作成しました。', $object->id, $object->title, $issuer->username);
+                    $message = sprintf('%3$s created article #%1$s "%2$s".', $object->id, $object->title, $issuer->username);
                     break;
                 case ActivityLog::ACTION_UPDATE:
-                    $message = sprintf('%3$s が記事 #%1$s「%2$s」を更新しました。', $object->id, $object->title, $issuer->username);
+                    $message = sprintf('%3$s updated article #%1$s "%2$s".', $object->id, $object->title, $issuer->username);
                     break;
                 case ActivityLog::ACTION_DELETE:
-                    $message = sprintf('%3$s が記事 #%1$s「%2$s」を削除しました。', $object->id, $object->title, $issuer->username);
+                    $message = sprintf('%3$s deleted article #%1$s "%2$s".', $object->id, $object->title, $issuer->username);
                     break;
                 default:
                     break;
@@ -527,22 +530,22 @@ class LoggerBehaviorTest extends TestCase
             return $message;
         });
 
-        // Create new article
+        // Create a new article
         $author = $this->Authors->get(1);
         $article = $this->Articles->newEntity([
-            'title' => 'バージョン1.0リリース',
-            'body' => '新しいバージョン 1.0 をリリースしました。',
+            'title' => 'Version 1.0 Release',
+            'body' => 'We have released the new version 1.0.',
             'author' => $author,
         ]);
         $this->Articles->setLogIssuer($author);
         $this->Articles->save($article);
 
         // Update the article
-        $article->title = 'バージョン1.0 stableリリース';
+        $article->title = 'Version 1.0 stable release';
         $this->Articles->save($article);
 
         // Record custom log
-        $this->Articles->activityLog(LogLevel::NOTICE, '記事を更新しています。');
+        $this->Articles->activityLog(LogLevel::NOTICE, 'Updating the article.');
 
         // Deleting by another user
         $this->Articles->setLogIssuer($this->Authors->get(2));
@@ -555,33 +558,36 @@ class LoggerBehaviorTest extends TestCase
             ->toArray();
 
         $this->assertCount(4, $logs);
-        $this->assertSame('mariano が記事 #4「バージョン1.0リリース」を作成しました。', $logs[0]->message);
-        $this->assertSame('mariano が記事 #4「バージョン1.0 stableリリース」を更新しました。', $logs[1]->message);
-        $this->assertSame('記事を更新しています。', $logs[2]->message);
-        $this->assertSame('nate が記事 #4「バージョン1.0 stableリリース」を削除しました。', $logs[3]->message);
+        $this->assertSame('mariano created article #4 "Version 1.0 Release".', $logs[0]->message);
+        $this->assertSame('mariano updated article #4 "Version 1.0 stable release".', $logs[1]->message);
+        $this->assertSame('Updating the article.', $logs[2]->message);
+        $this->assertSame('nate deleted article #4 "Version 1.0 stable release".', $logs[3]->message);
     }
 
+    /**
+     * @return void
+     */
     public function testSetLogMessage(): void
     {
         $author = $this->Authors->get(1);
         $this->Articles->setLogIssuer($author);
 
-        // Create new article
+        // Create a new article
         $this->Articles->setLogMessage('custom message');
         $article = $this->Articles->newEntity([
-            'title' => 'バージョン1.0リリース',
-            'body' => '新しいバージョン 1.0 をリリースしました。',
+            'title' => 'Version 1.0 Release',
+            'body' => 'We have released a new version 1.0.',
             'author' => $author,
         ]);
         $this->Articles->save($article);
 
         // Update the article
-        $article->title = 'バージョン1.0 stableリリース';
+        $article->title = 'Version 1.0 stable release';
         $this->Articles->save($article);
 
         // Update the article
         $this->Articles->setLogMessage('persist custom message', true);
-        $article->title = 'バージョン1.0.0 stableリリース';
+        $article->title = 'Version 1.0.0 stable release';
         $this->Articles->save($article);
         // Delete the article
         $this->Articles->delete($article);
