@@ -115,7 +115,44 @@ $this->Articles->save($article);
 // [action='create', scope_model='Authors', scope_id=$author->id, ...]
 ```
 
-#### AutoIssuerComponent
+#### AutoIssuerMiddleware（CakePHP 4.x以降推奨）
+
+`AutoIssuerMiddleware`は、`Authorization`プラグインを使用しているアプリケーションで実行者の自動設定を提供するPSR-15準拠のミドルウェアです。
+このミドルウェアはアプリケーションレベルで動作し、リクエストライフサイクルの早い段階で認証情報を処理します。
+
+##### インストールと設定
+
+```php
+// src/Application.php内
+use Elastic\ActivityLogger\Http\Middleware\AutoIssuerMiddleware;
+
+class Application extends BaseApplication
+{
+    public function middleware(MiddlewareQueue $middlewareQueue): MiddlewareQueue
+    {
+        $middlewareQueue
+            // ... 他のミドルウェア
+            ->add(new AuthenticationMiddleware($this))
+            
+            // **認証ミドルウェアの後に** AutoIssuerMiddlewareを追加
+            ->add(new AutoIssuerMiddleware([
+                'userModel' => 'Users',           // ユーザーモデル名（デフォルト: 'Users'）
+                'identityAttribute' => 'identity', // リクエスト属性名（デフォルト: 'identity'）
+            ]))
+            
+            // ... 他のミドルウェア
+            ->add(new RoutingMiddleware($this));
+            
+        return $middlewareQueue;
+    }
+}
+```
+
+##### 重要な注意事項
+
+- **ミドルウェアの順序**: AutoIssuerMiddlewareは必ず認証ミドルウェアの後に配置してください
+
+#### AutoIssuerComponent（レガシーアプローチ）
 
 `Authorization`プラグインや`AuthComponent`を使用している場合、`AutoIssuerComponent`がテーブルに実行者を自動設定してくれます：
 
@@ -290,11 +327,24 @@ A: 以下を確認してください：
 
 **Q: 実行者の情報が記録されません**
 
-A: `AutoIssuerComponent`が読み込まれているか、または`setLogIssuer()`で手動設定されているかを確認してください。
+A: 以下を確認してください：
+- AutoIssuerMiddleware使用時：認証ミドルウェアの後に配置されているか確認
+- AutoIssuerComponent使用時：コントローラーのinitialize()メソッドで読み込まれているか確認
+- 必要に応じて`setLogIssuer()`で手動設定されているか確認
+- ユーザーモデルの設定がアプリケーションのユーザーテーブルと一致しているか確認
 
 **Q: パフォーマンスに影響がありますか？**
 
-A: 大量のデータを扱う際は、必要に応じてログ記録を一時的に無効化することを検討してください。
+A: 
+- AutoIssuerMiddlewareはリクエストごとに一度処理されるため、パフォーマンスへの影響は最小限です
+- 大量のデータを扱う際は、必要に応じてログ記録を一時的に無効化することを検討してください
+
+**Q: 動的に読み込まれたテーブルに実行者が設定されません**
+
+A: AutoIssuerMiddlewareは`Model.initialize`イベントにフックします。以下を確認してください：
+- テーブルアクセスの前にミドルウェアが読み込まれている
+- テーブルがTableLocatorを通じて読み込まれている（手動でインスタンス化していない）
+- LoggerBehaviorがテーブルにアタッチされている
 
 ## ライセンス
 

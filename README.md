@@ -115,7 +115,44 @@ $this->Articles->save($article);
 // [action='create', scope_model='Authors', scope_id=$author->id, ...]
 ```
 
-#### AutoIssuerComponent
+#### AutoIssuerMiddleware (Recommended for CakePHP 4.x+)
+
+`AutoIssuerMiddleware` is a PSR-15 compliant middleware that provides automatic issuer setting for applications using the `Authorization` plugin.
+This middleware operates at the application level and processes authentication information early in the request lifecycle.
+
+##### Installation and Configuration
+
+```php
+// In src/Application.php
+use Elastic\ActivityLogger\Http\Middleware\AutoIssuerMiddleware;
+
+class Application extends BaseApplication
+{
+    public function middleware(MiddlewareQueue $middlewareQueue): MiddlewareQueue
+    {
+        $middlewareQueue
+            // ... other middleware
+            ->add(new AuthenticationMiddleware($this))
+            
+            // Add AutoIssuerMiddleware AFTER authentication middleware
+            ->add(new AutoIssuerMiddleware([
+                'userModel' => 'Users',           // User model name (default: 'Users')
+                'identityAttribute' => 'identity', // Request attribute name (default: 'identity')
+            ]))
+            
+            // ... other middleware
+            ->add(new RoutingMiddleware($this));
+            
+        return $middlewareQueue;
+    }
+}
+```
+
+##### Important Notes
+
+- **Middleware Order**: Always place AutoIssuerMiddleware AFTER authentication middleware
+
+#### AutoIssuerComponent (Legacy Approach)
 
 If you're using `Authorization` plugin or `AuthComponent`, the `AutoIssuerComponent` will automatically set the issuer to Tables:
 
@@ -290,11 +327,38 @@ A: Please check the following:
 
 **Q: Issuer information is not being recorded**
 
-A: Please check if the `AutoIssuerComponent` is loaded or if `setLogIssuer()` is manually set.
+A: Please check the following:
+- If using AutoIssuerMiddleware: Ensure it's placed AFTER authentication middleware in the middleware queue
+- If using AutoIssuerComponent: Verify it's loaded in your controller's initialize() method
+- Check if `setLogIssuer()` is manually set when needed
+- Verify the user model configuration matches your application's user table
+
+**Q: AutoIssuerMiddleware vs AutoIssuerComponent - Which should I use?**
+
+A: 
+- **Use AutoIssuerMiddleware** (Recommended for CakePHP 4.x+):
+  - For new applications
+  - When you need application-wide issuer tracking
+  - For better performance and cleaner architecture
+  - When using PSR-15 middleware stack
+  
+- **Use AutoIssuerComponent**:
+  - For legacy applications or CakePHP 3.x
+  - When you need controller-specific issuer handling
+  - For backward compatibility
 
 **Q: Is there any performance impact?**
 
-A: When handling large amounts of data, consider temporarily disabling logging as needed.
+A: 
+- AutoIssuerMiddleware has minimal performance impact as it processes once per request
+- When handling large amounts of data, consider temporarily disabling logging as needed
+
+**Q: The issuer is not set for dynamically loaded Tables**
+
+A: The AutoIssuerMiddleware hooks into `Model.initialize` events. Ensure:
+- The middleware is loaded before any Table access
+- Tables are loaded through the TableLocator (not manually instantiated)
+- The LoggerBehavior is attached to the Table
 
 ## License
 

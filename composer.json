@@ -37,7 +37,7 @@
         ],
         "cs-check": "phpcs -p --extensions=php ./src ./tests",
         "cs-fix": "phpcbf -p --extensions=php ./src ./tests",
-        "stan": "phpstan analyse",
+        "stan": "phpstan analyse --memory-limit=2G",
         "test": "phpunit --colors=always",
         "update-lowest": "composer update --prefer-lowest --prefer-stable"
     },

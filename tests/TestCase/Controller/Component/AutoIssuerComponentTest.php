@@ -1,4 +1,6 @@
 <?php
+/** @noinspection PhpDocMissingThrowsInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
 declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Test\TestCase\Controller\Component;
@@ -34,35 +36,21 @@ class AutoIssuerComponentTest extends TestCase
 
     /**
      * Test subject
-     *
-     * @var AutoIssuerComponent
      */
     private AutoIssuerComponent $AutoIssuer;
 
     /**
-     * @var ComponentRegistry
+     * @var ComponentRegistry<\Cake\Controller\Controller>
      */
     private ComponentRegistry $registry;
 
-    /**
-     * @var \TestApp\Model\Table\AuthorsTable
-     */
     private AuthorsTable $Authors;
 
-    /**
-     * @var \TestApp\Model\Table\ArticlesTable
-     */
     private ArticlesTable $Articles;
 
-    /**
-     * @var \TestApp\Model\Table\CommentsTable
-     */
     private CommentsTable $Comments;
 
-    /**
-     * @var \Cake\Http\ServerRequest|\PHPUnit\Framework\MockObject\MockObject
-     */
-    private ServerRequest|MockObject $request;
+    private ServerRequest&MockObject $mockRequest;
 
     /**
      * setUp method
@@ -74,12 +62,15 @@ class AutoIssuerComponentTest extends TestCase
     {
         parent::setUp();
 
+        // @phpstan-ignore-next-line
         $this->Authors = $this->fetchTable('TestApp.Authors', ['className' => AuthorsTable::class]);
+        // @phpstan-ignore-next-line
         $this->Articles = $this->fetchTable('TestApp.Articles', ['className' => ArticlesTable::class]);
+        // @phpstan-ignore-next-line
         $this->Comments = $this->fetchTable('TestApp.Comments', ['className' => CommentsTable::class]);
 
-        $this->request = $this->createMock(ServerRequest::class);
-        $this->registry = new ComponentRegistry(new Controller($this->request));
+        $this->mockRequest = $this->createMock(ServerRequest::class);
+        $this->registry = new ComponentRegistry(new Controller($this->mockRequest));
         $this->AutoIssuer = new AutoIssuerComponent($this->registry, [
             'userModel' => 'TestApp.Users',
         ]);
@@ -108,7 +99,11 @@ class AutoIssuerComponentTest extends TestCase
     {
         // Check default config value
         $component = new AutoIssuerComponent($this->registry);
-        $this->assertSame('Users', $component->getConfig('userModel'));
+
+        $this->assertSame([
+            'userModel' => 'Users',
+            'identityAttribute' => 'identity',
+        ], $component->getConfig(), 'default config should be set correctly');
     }
 
     /**
@@ -124,7 +119,7 @@ class AutoIssuerComponentTest extends TestCase
     public function testStartupWithAuthenticationPlugin(): void
     {
         // Set identity
-        $this->request
+        $this->mockRequest
             ->method('getAttribute')
             ->with('identity')
             ->willReturn(new User([
@@ -152,7 +147,7 @@ class AutoIssuerComponentTest extends TestCase
     public function testStartupWithNotAuthenticated(): void
     {
         // Set identity
-        $this->request
+        $this->mockRequest
             ->method('getAttribute')
             ->with('identity')
             ->willReturn(null);
@@ -179,7 +174,7 @@ class AutoIssuerComponentTest extends TestCase
             'id' => 1,
         ]);
         $user->setSource('Authors');
-        $this->request
+        $this->mockRequest
             ->method('getAttribute')
             ->with('identity')
             ->willReturn($user);
@@ -202,7 +197,7 @@ class AutoIssuerComponentTest extends TestCase
     public function testStartupWithUnknownIdentity(): void
     {
         // Set identity
-        $this->request
+        $this->mockRequest
             ->method('getAttribute')
             ->with('identity')
             ->willReturn(new User([
@@ -248,7 +243,7 @@ class AutoIssuerComponentTest extends TestCase
     public function testOnInitializeModel(): void
     {
         // Set identity
-        $this->request
+        $this->mockRequest
             ->method('getAttribute')
             ->with('identity')
             ->willReturn(new User([
@@ -263,9 +258,11 @@ class AutoIssuerComponentTest extends TestCase
         // reload Table
         $this->getTableLocator()->remove('TestApp.Authors');
         /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        // @phpstan-ignore-next-line
         $this->Authors = $this->fetchTable('TestApp.Authors', [
             'className' => AuthorsTable::class,
         ]);
+        assert($this->Authors instanceof AuthorsTable);
 
         // will set issuer
         $this->assertInstanceOf(User::class, $this->Authors->getLogIssuer());
@@ -273,14 +270,14 @@ class AutoIssuerComponentTest extends TestCase
     }
 
     /**
-     * Test Model.initialize Event hook
+     * Test Model.initialize Event hook when TableLocator is cleared
      *
      * @return void
      */
     public function testOnInitializeModelAtClearTableLocator(): void
     {
         // Set identity
-        $this->request
+        $this->mockRequest
             ->method('getAttribute')
             ->with('identity')
             ->willReturn(new User([
@@ -295,11 +292,13 @@ class AutoIssuerComponentTest extends TestCase
         // clear TableRegistry
         $this->getTableLocator()->clear();
         /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        // @phpstan-ignore-next-line
         $this->Articles = $this->fetchTable('Articles', [
             'className' => ArticlesTable::class,
         ]);
+        assert($this->Articles instanceof ArticlesTable);
 
-        // will not set issuer
+        // will not set issuer (because TableLocator was cleared)
         $this->assertNull($this->Articles->getLogIssuer());
     }
 }
