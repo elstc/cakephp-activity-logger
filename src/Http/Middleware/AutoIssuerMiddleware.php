@@ -3,21 +3,16 @@ declare(strict_types=1);
 
 namespace Elastic\ActivityLogger\Http\Middleware;
 
-use ArrayAccess;
 use Authentication\IdentityInterface;
 use Cake\Core\InstanceConfigTrait;
-use Cake\Datasource\EntityInterface;
-use Cake\Event\Event;
+use Cake\Event\EventListenerInterface;
 use Cake\Event\EventManager;
-use Cake\Log\Log;
-use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Table;
-use Cake\Utility\Hash;
+use Elastic\ActivityLogger\Lib\AutoIssuerTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use ReflectionClass;
 
 /**
  * AutoIssuer middleware
@@ -28,10 +23,10 @@ use ReflectionClass;
  *  'userModel': Set Identifiers 'userModel'.
  *  'identityAttribute': The request attribute used to store the identity.
  */
-class AutoIssuerMiddleware implements MiddlewareInterface
+class AutoIssuerMiddleware implements MiddlewareInterface, EventListenerInterface
 {
+    use AutoIssuerTrait;
     use InstanceConfigTrait;
-    use LocatorAwareTrait;
 
     /**
      * Default configuration.
@@ -44,18 +39,6 @@ class AutoIssuerMiddleware implements MiddlewareInterface
     ];
 
     /**
-     * A Logged-in User
-     *
-     * @var \Cake\Datasource\EntityInterface|null
-     */
-    protected ?EntityInterface $issuer = null;
-
-    /**
-     * @var array<\Cake\ORM\Table>
-     */
-    protected array $tables = [];
-
-    /**
      * Constructor
      *
      * @param array<string, mixed> $config Configuration options
@@ -64,8 +47,17 @@ class AutoIssuerMiddleware implements MiddlewareInterface
     {
         $this->setConfig($config);
 
-        // Listen to Model.initialize event
-        EventManager::instance()->on('Model.initialize', [$this, 'onInitializeModel']);
+        EventManager::instance()->on($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function implementedEvents(): array
+    {
+        return [
+            'Model.initialize' => 'onInitializeModel',
+        ];
     }
 
     /**
@@ -94,113 +86,12 @@ class AutoIssuerMiddleware implements MiddlewareInterface
     }
 
     /**
-     * on Model.initialize
-     *
-     * - register the model to this middleware's table collection
-     * - set issuer to the model
-     *
-     * @param \Cake\Event\Event<\Cake\ORM\Table> $event the event
-     * @return void
-     */
-    public function onInitializeModel(Event $event): void
-    {
-        /** @var \Cake\ORM\Table $table */
-        $table = $event->getSubject();
-        if (!array_key_exists($table->getRegistryAlias(), $this->tables)) {
-            $this->tables[$table->getRegistryAlias()] = $table;
-        }
-
-        // set issuer to the model if a logged-in user can get
-        if (
-            !empty($this->issuer) &&
-            $table->behaviors()->hasMethod('setLogIssuer') &&
-            $this->getTableLocator()->exists($this->issuer->getSource())
-        ) {
-            // Call the method through behaviors() to ensure it exists
-            $table->behaviors()->call('setLogIssuer', [$this->issuer]);
-        }
-    }
-
-    /**
-     * Get initialized models from the TableLocator
-     *
-     * Note: This method uses reflection to access the internal instances property
-     * of the TableLocator. This approach may be fragile and could break if
-     * CakePHP changes its internal implementation.
-     *
-     * @return array<string, \Cake\ORM\Table>
-     */
-    private function getInitializedTables(): array
-    {
-        $locator = $this->getTableLocator();
-        $reflectionClass = new ReflectionClass($locator);
-
-        if (!$reflectionClass->hasProperty('instances')) {
-            Log::debug('TableLocator does not have instances property, returning empty array');
-
-            return [];
-        }
-
-        $property = $reflectionClass->getProperty('instances');
-        $instances = $property->getValue($locator);
-
-        if (!is_array($instances)) {
-            Log::debug('TableLocator instances property is not an array, returning empty array');
-
-            return [];
-        }
-
-        return $instances;
-    }
-
-    /**
-     * Set issuer to all models
-     *
-     * @param \Cake\Datasource\EntityInterface $issuer An issuer
-     * @return void
-     */
-    private function setIssuerToAllModel(EntityInterface $issuer): void
-    {
-        foreach ($this->tables as $table) {
-            if ($table->behaviors()->hasMethod('setLogIssuer')) {
-                // Call the method through behaviors() to ensure it exists
-                $table->behaviors()->call('setLogIssuer', [$issuer]);
-            }
-        }
-    }
-
-    /**
-     * Get issuer from logged in user data
-     *
-     * @param \ArrayAccess<string, mixed>|array<string, mixed> $user a User entity
-     * @return \Cake\Datasource\EntityInterface|null
-     */
-    private function getIssuerFromUserArray(array|ArrayAccess $user): ?EntityInterface
-    {
-        $table = $this->getUserModel();
-
-        if ($user instanceof EntityInterface && $user->getSource()) {
-            return is_a($user, $table->getEntityClass()) ? $user : null;
-        }
-
-        $primaryKey = $table->getPrimaryKey();
-        if (is_string($primaryKey)) {
-            $userId = Hash::get($user, $primaryKey);
-            if ($userId) {
-                return $table->find()->where([$primaryKey => $userId])->first();
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Get Users table class
      *
      * @return \Cake\ORM\Table
      */
-    private function getUserModel(): Table
+    protected function getUserModel(): Table
     {
-        return $this->getTableLocator()->get($this->getConfig('userModel'));
+        return $this->fetchTable($this->getConfig('userModel'));
     }
 }

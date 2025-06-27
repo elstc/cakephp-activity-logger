@@ -1,4 +1,6 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpDocMissingThrowsInspection */
 /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
 declare(strict_types=1);
 
