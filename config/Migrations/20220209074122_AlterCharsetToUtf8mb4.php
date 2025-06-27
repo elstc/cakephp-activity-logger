@@ -7,7 +7,7 @@ use Cake\Utility\Hash;
 use Migrations\AbstractMigration;
 
 /**
- * 20220209074122 テーブル、カラムの文字コードをutf8mb4に変更する
+ * 20220209074122 Change table and column charset to utf8mb4
  *
  * @codingStandardsIgnoreStart
  */
@@ -34,14 +34,14 @@ class AlterCharsetToUtf8mb4 extends AbstractMigration//@codingStandardsIgnoreEnd
                 && !preg_match('/_phinxlog$/', $tableName);
         });
         foreach ($tableNames as $tableName) {
-            // テーブルの文字照合順変更
+            // Change table collation
             $tableSchema = $schemaCollection->describe($tableName);
             $tableCollation = Hash::get($tableSchema->getOptions(), 'collation', '');
             if (preg_match('/\Autf8_/', $tableCollation)) {
                 $this->execute(sprintf('ALTER TABLE `%s` CHARACTER SET %s COLLATE %s', $tableName, 'utf8mb4', 'utf8mb4_general_ci'));
             }
 
-            // カラムの文字照合順序変更
+            // Change column collation
             $table = $this->table($tableName);
             $colNames = $tableSchema->columns();
             foreach ($colNames as $colName) {
