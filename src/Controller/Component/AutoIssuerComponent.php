@@ -19,7 +19,7 @@ use ReflectionClass;
  *
  * Get authentication information from the Authentication plugin (or AuthComponent) and set it to each Table as Issuer.
  *
- * config:
+ * Config:
  *  'userModel': Set Identifiers 'userModel'.
  *  'identityAttribute': The request attribute used to store the identity.
  */
@@ -100,8 +100,7 @@ class AutoIssuerComponent extends Component
      */
     public function onAfterIdentifyAtAuthentication(Event $event): void
     {
-        /** @var \ArrayAccess<string, mixed> $identity */
-        $identity = $event->getData()['identity'] ?? null;
+        $identity = $event->getData('identity');
         $this->issuer = $this->getIssuerFromUserArray($identity);
 
         if (!$this->issuer) {
@@ -178,7 +177,7 @@ class AutoIssuerComponent extends Component
     /**
      * Set issuer to all models
      *
-     * @param \Cake\Datasource\EntityInterface $issuer A issuer
+     * @param \Cake\Datasource\EntityInterface $issuer An issuer
      * @return void
      */
     private function setIssuerToAllModel(EntityInterface $issuer): void
