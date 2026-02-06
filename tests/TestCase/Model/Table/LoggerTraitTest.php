@@ -7,7 +7,7 @@ use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\TestSuite\TestCase;
 use Elastic\ActivityLogger\Model\Behavior\LoggerBehavior;
 use Elastic\ActivityLogger\Model\Table\LoggerTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Log\LogLevel;
 use TestApp\Model\Table\ArticlesTable;
@@ -16,7 +16,7 @@ use TestApp\Model\Table\AuthorsTable;
 /**
  * LoggerTrait Test Case
  */
-#[CoversClass(LoggerTrait::class)]
+#[CoversTrait(LoggerTrait::class)]
 class LoggerTraitTest extends TestCase
 {
     use LocatorAwareTrait;
