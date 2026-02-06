@@ -314,6 +314,42 @@ foreach ($articles as $article) {
 $this->Articles->enableActivityLog();
 ```
 
+## アップグレード
+
+### CakePHP 5.3以降
+
+CakePHP 5.3では、Tableクラスからビヘイビアメソッドを直接呼び出すことが非推奨になりました。既存コードとの後方互換性を維持するには、Tableクラスに`LoggerTrait`を追加してください：
+
+```php
+use Elastic\ActivityLogger\Model\Table\LoggerTrait;
+
+class ArticlesTable extends Table
+{
+    use LoggerTrait;
+
+    public function initialize(array $config): void
+    {
+        $this->addBehavior('Elastic/ActivityLogger.Logger');
+    }
+}
+```
+
+このトレイトを使用することで、従来通りのメソッド呼び出しを継続できます：
+
+```php
+// これらのメソッドは従来通り動作します
+$this->Articles->setLogScope($article);
+$this->Articles->setLogIssuer($user);
+$this->Articles->setLogMessage('カスタムメッセージ');
+```
+
+トレイトを使用しない場合は、ビヘイビア経由でメソッドを呼び出す必要があります：
+
+```php
+// LoggerTraitなし（CakePHP 5.3以降の推奨パターン）
+$this->Articles->getBehavior('Logger')->setLogScope($article);
+```
+
 ## トラブルシューティング
 
 ### よくある問題

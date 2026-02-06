@@ -54,11 +54,12 @@ trait AutoIssuerTrait
         // set issuer to the model if a logged-in user can get
         if (
             !empty($this->issuer) &&
-            $table->behaviors()->hasMethod('setLogIssuer') &&
+            $table->hasBehavior('Logger') &&
             $this->getTableLocator()->exists($this->issuer->getSource())
         ) {
-            // Call the method through behaviors() to ensure it exists
-            $table->behaviors()->call('setLogIssuer', [$this->issuer]);
+            /** @var \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior $behavior */
+            $behavior = $table->getBehavior('Logger');
+            $behavior->setLogIssuer($this->issuer);
         }
     }
 
@@ -103,9 +104,10 @@ trait AutoIssuerTrait
     protected function setIssuerToAllModel(EntityInterface $issuer): void
     {
         foreach ($this->tables as $table) {
-            if ($table->behaviors()->hasMethod('setLogIssuer')) {
-                // Call the method through behaviors() to ensure it exists
-                $table->behaviors()->call('setLogIssuer', [$issuer]);
+            if ($table->hasBehavior('Logger')) {
+                /** @var \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior $behavior */
+                $behavior = $table->getBehavior('Logger');
+                $behavior->setLogIssuer($issuer);
             }
         }
     }

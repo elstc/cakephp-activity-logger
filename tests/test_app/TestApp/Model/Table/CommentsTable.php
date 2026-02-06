@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace TestApp\Model\Table;
 
 use Cake\ORM\Table;
+use Elastic\ActivityLogger\Model\Table\LoggerTrait;
 use TestApp\Model\Entity\Comment;
 
 /**
@@ -11,10 +12,11 @@ use TestApp\Model\Entity\Comment;
  * @param UsersTable&\Cake\ORM\Association\BelongsTo $Users
  * @method Comment get($primaryKey, array $options = [])
  * @method Comment newEntity(array $data, array $options = [])
- * @mixin \Elastic\ActivityLogger\Model\Behavior\LoggerBehavior
  */
 class CommentsTable extends Table
 {
+    use LoggerTrait;
+
     public function initialize(array $config): void
     {
         $this->setEntityClass(Comment::class);

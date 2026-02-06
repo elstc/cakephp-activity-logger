@@ -314,6 +314,42 @@ foreach ($articles as $article) {
 $this->Articles->enableActivityLog();
 ```
 
+## Upgrading
+
+### CakePHP 5.3+
+
+CakePHP 5.3 deprecated calling behavior methods directly on the Table class. To maintain backward compatibility with your existing code, add `LoggerTrait` to your Table classes:
+
+```php
+use Elastic\ActivityLogger\Model\Table\LoggerTrait;
+
+class ArticlesTable extends Table
+{
+    use LoggerTrait;
+
+    public function initialize(array $config): void
+    {
+        $this->addBehavior('Elastic/ActivityLogger.Logger');
+    }
+}
+```
+
+With this trait, you can continue using the familiar method calls:
+
+```php
+// These methods work as before
+$this->Articles->setLogScope($article);
+$this->Articles->setLogIssuer($user);
+$this->Articles->setLogMessage('Custom message');
+```
+
+Without the trait, you need to call methods through the behavior:
+
+```php
+// Without LoggerTrait (CakePHP 5.3+ recommended pattern)
+$this->Articles->getBehavior('Logger')->setLogScope($article);
+```
+
 ## Troubleshooting
 
 ### Common Issues
