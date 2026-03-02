@@ -4,14 +4,14 @@
  */
 
 use Cake\Utility\Hash;
-use Migrations\AbstractMigration;
+use Migrations\BaseMigration;
 
 /**
  * 20220209074122 Change table and column charset to utf8mb4
  *
  * @codingStandardsIgnoreStart
  */
-class AlterCharsetToUtf8mb4 extends AbstractMigration//@codingStandardsIgnoreEnd
+class AlterCharsetToUtf8mb4 extends BaseMigration//@codingStandardsIgnoreEnd
 {
     /**
      * Up Method.

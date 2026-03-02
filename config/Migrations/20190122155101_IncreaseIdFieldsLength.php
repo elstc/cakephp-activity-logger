@@ -3,9 +3,9 @@
  * Copyright 2019 ELASTIC Consultants Inc.
  */
 
-use Migrations\AbstractMigration;
+use Migrations\BaseMigration;
 
-class IncreaseIdFieldsLength extends AbstractMigration
+class IncreaseIdFieldsLength extends BaseMigration
 {
 
     public function up()
