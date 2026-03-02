@@ -5,9 +5,9 @@
  * Copyright 2019 ELASTIC Consultants Inc.
  */
 
-use Migrations\AbstractMigration;
+use Migrations\BaseMigration;
 
-class IncreaseModelFieldsLength extends AbstractMigration
+class IncreaseModelFieldsLength extends BaseMigration
 {
 
     public function up()
