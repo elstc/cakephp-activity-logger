@@ -5,12 +5,11 @@
         processIsolation="false"
         stopOnFailure="false"
         bootstrap="./tests/bootstrap.php"
-        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
         cacheDirectory=".phpunit.cache"
 >
   <php>
     <ini name="memory_limit" value="-1"/>
-    <ini name="apc.enable_cli" value="1"/>
   </php>
 
   <!-- Add any additional test suites you want to run here -->
