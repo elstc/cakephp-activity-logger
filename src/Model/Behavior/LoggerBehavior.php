@@ -348,6 +348,7 @@ class LoggerBehavior extends Behavior
 
         $logQuery->where($where)->orderBy([$logTable->aliasField('id') => 'desc']);
 
+        /** @var \Cake\ORM\Query\SelectQuery<\Elastic\ActivityLogger\Model\Entity\ActivityLog> $logQuery */
         return $logQuery;
     }
 
